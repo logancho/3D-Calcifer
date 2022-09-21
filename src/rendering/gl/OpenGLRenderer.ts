@@ -33,7 +33,7 @@ class OpenGLRenderer {
     prog.setViewProjMatrix(viewProj);
     prog.setGeometryColor(color);
     //CamPos
-    prog.setCamPos(vec4.fromValues(camera.position[0], camera.position[1], camera.position[2], 1.0));
+    prog.setCamPos(vec4.fromValues(camera.controls.eye[0], camera.controls.eye[1], camera.controls.eye[2], 1.0));
     //Time
     prog.setTime(t);
     

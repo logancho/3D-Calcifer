@@ -28,7 +28,10 @@ let prevTesselations: number = 5;
 let prevR: number = 1;
 let prevG: number = 0.0;
 let prevB: number = 0.0;
+
+
 //time:
+
 let time: number = 0.0;
 
 function loadScene() {
@@ -43,7 +46,6 @@ function loadScene() {
   cube = new Cube(vec3.fromValues(0, 0, 0));
   cube.create();
 }
-
 
 //Update the existing GUI in main.ts with:
 //    a parameter to alter the color passed to u_Color in the Lambert shader. 
@@ -79,7 +81,7 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0.0, 0.0, 5.0), vec3.fromValues(0.0, 0.0, 0.0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
@@ -111,6 +113,7 @@ function main() {
   function tick() {
     time++;
     camera.update();
+    console.log("bruh");
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
@@ -135,30 +138,30 @@ function main() {
     {
       prevB = controls.B;
     }
-
     //Add time input into this call!!!
     // gl.disable(gl.DEPTH_TEST);
 
-    renderer.render(camera, lambert, [
+    renderer.render(camera, fireBall, [
       icosphere,
       // leftEye,
       // square,
       // cube,
       ],
       vec3.fromValues(controls.R, controls.G, controls.B),
+      // camera.position,
       time
     );
 
-    renderer.render(camera, fireBall, [
-      // icosphere,
-      // leftEye,
-      square,
-      // square,
-      // cube,
-      ],
-      vec3.fromValues(controls.R, controls.G, controls.B),
-      time
-    );
+    // renderer.render(camera, fireBall, [
+    //   // icosphere,
+    //   // leftEye,
+    //   square,
+    //   // square,
+    //   // cube,
+    //   ],
+    //   vec3.fromValues(controls.R, controls.G, controls.B),
+    //   time
+    // );
 
     stats.end();
 

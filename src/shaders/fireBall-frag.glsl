@@ -13,6 +13,7 @@ precision highp float;
 
 uniform vec4 u_Color; // The color with which to render this instance of geometry.
 uniform float u_Time;
+uniform vec4 u_CamPos;
 
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
@@ -20,6 +21,7 @@ in vec4 fs_Nor;
 in vec4 fs_LightVec;
 in vec4 fs_Col;
 in vec4 fs_Pos;
+
 
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
@@ -87,15 +89,37 @@ void main()
         // vec3 i = 0.000006f * vec3(fs_Pos) + 0.00000009f * vec3(u_Time);
         // float fbm_2 = bias(fbm_test(i.x, i.y, i.z), 0.45f);
 
+
+
         // Compute final shaded color
         // out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
-        out_Col = vec4(vec3(diffuseColor), 1.0f);
+        // out_Col = vec4(vec3(diffuseColor), 1.0f);
         // out_Col = vec4(lightIntensity * vec3(mix(vec4(diffuseColor), vec4(vec3(1.f) - vec3(diffuseColor), 1.f), fbm_2)), 1.f);
 
         // if (abs(dot(vec3(fs_Nor), vec3(0, 1, 0))) > 0.5f) {
-        //     out_Col = vec4(1.f, 0.f, 0.f, 1.f);
+        // out_Col = vec4(247.f / 255.f, 191.f / 255.f, 65.f / 255.f, 1.f);
+        // out_Col = vec4( mix(vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f), vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f), length(vec3(fs_Pos))));
+        vec3 yellow = vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f);
+        vec3 red = vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f);
+
+        float dist = length(fs_Pos);
+        dist = 1.f;
+        // vec3 comparison = normalize(vec3(0) - vec3(0, 0, 1));
+        // dist = acos(dot(normalize(vec3(fs_Nor)), vec3(0, 0, 1))))));
+        dist = acos(dot( normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos)) ));
+        // dist = bias(dist, 0.1f);
+        // dist = clamp(dist, 0.f, 1.f);
+        // dist = acos(dot(normalize(vec3(fs_Pos)),vec3(0, 0, 1)));
+        // dist = clamp(dist, 0.f, 1.f);
+        // dist /= 3.14f;
+        vec3 ipol = mix(yellow, red, dist);
+
+        // if (dist < 0.001f) {
+        //     ipol = red;
         // }
-
-
-
+        out_Col = vec4(ipol, 1.0f);
+        // out
+        // out_Col = vec4(vec3(normalize(red)), 1.f);
+        // out_Col = vec4(vec3(u_Color), 1.f);
+        // out_Col = vec4(vec3(normalize(u_CamPos)), 1.f);
 }

@@ -34,6 +34,7 @@ out vec4 fs_LightVec;       // The direction in which our virtual light lies, re
 out vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.
 out vec4 fs_Pos;
 
+
 const vec4 lightPos = vec4(0, 5, 0, 1); //The position of our virtual light, which is used to compute the shading of
                                         //the geometry in the fragment shader.
 
@@ -89,6 +90,11 @@ void main()
     vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
 
     vec3 tempPos = vec3(modelposition);
+    vec3 center = vec3(0);
+
+    //First, calculate the angle between tempPos and the center
+
+    float angle = acos(dot(normalize(tempPos), vec3(0, 1, 0)));
 
     // vec3 i = 0.01f * tempPos + 0.0000010f * vec3(u_Time);
     // float disp = fbm_test(i.x, i.y, i.z);
@@ -103,11 +109,18 @@ void main()
     // tempPos += fbm_2 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
     // tempPos += 0.7f * fbm_2 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
 
+    // if (angle < 0.4f) {
+    tempPos += bias((1.f / (angle + 0.0001f)), 0.65f) * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
+    // }
+
+    
+
     fs_LightVec = lightPos - vec4(tempPos, 1.f);
 
     gl_Position = u_ViewProj * vec4(tempPos, 1.f);// gl_Position is a built-in variable of OpenGL which is
                                              // used to render the final positions of the geometry's vertices
 
-    // fs_Pos = vec4(tempPos, 1.f);
-    fs_Pos = modelposition;
+    fs_Pos = vec4(tempPos, 1.f);
+    // fs_Pos = gl_Position;
+    // fs_Pos = modelposition;
 }
