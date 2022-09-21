@@ -44,41 +44,70 @@ float noise_gen2(float x, float y, float z, float w) {
     return fract(sin(dot(vec4(x, y, z, w), vec4(1.9898, 7.233, 4.984, 100.2974))) * 437.54531);
 }
 
-float fbm(float x, float y, float z) {
-    float total = 0.f;
-    float persistence = 1.f / 2.f;
-    float amplitude = 1.f;
-    float frequency = 1.f;
-    for (int i = 0; i < N_OCTAVES; ++i) {
-        frequency *= 2.f;
-        amplitude *= persistence;
-        total += amplitude * noise_gen2(x, y, z, frequency);
-    }
-    return total;
-}
+// float fbm(float x, float y, float z) {
+//     float total = 0.f;
+//     float persistence = 1.f / 2.f;
+//     float amplitude = 1.f;
+//     float frequency = 1.f;
+//     for (int i = 0; i < N_OCTAVES; ++i) {
+//         frequency *= 2.f;
+//         amplitude *= persistence;
+//         total += amplitude * noise_gen2(x, y, z, frequency);
+//     }
+//     return total;
+// }
 
 float bias(float t, float b) {
     return (t / ((((1.0/b) - 2.0)*(1.0 - t))+1.0));
 }
 
 float noise_gen3(float x, float y, float z) {
-    return fract(sin(dot(vec3(x, y, z), vec3(0, 1, 0))) * 4337.54531);
+    return fract(sin(dot(vec3(x, y, z), vec3(24.5634, 17.32445, 28.2345))) * 4337.54531);
 }
 
-float fbm_test(float x, float y, float z) {
+// Precision-adjusted variations of https://www.shadertoy.com/view/4djSRW
+float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+float hash(vec2 p) {vec3 p3 = fract(vec3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
+
+// By Morgan McGuire @morgan3d, http://graphicscodex.com
+//3D value noise used from Shadertoy, https://www.shadertoy.com/view/4dS3Wd
+//Fbm and etc. implemented by me
+float noise_gen4(vec3 x) {
+    // 
+    vec3 step = vec3(110.f, 241.f, 171.f);
+
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+ 
+    // // For performance, compute the base input to a 1D hash from the integer part of the argument and the 
+    // // incremental change to the 1D based on the 3D -> 1D wrapping
+    float n = dot(i, step);
+
+    vec3 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
+               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
+}
+
+float fbm(float x, float y, float z, float persistence, int N_OCTAVES) {
     float total = 0.f;
     float frequency = 1.f;
     float amplitude = 1.f;
     float maxValue = 0.f;  // Used for normalizing result to 0.0 - 1.0
-    float persistence = 0.5f;
+    // float persistence = 0.5f;
     for(int i = 0; i < N_OCTAVES; i++) {
-        total += noise_gen3(x * frequency, y * frequency, z * frequency) * amplitude;
+        total += noise_gen4(vec3(x * frequency, y * frequency, z * frequency)) * amplitude;
+        // total += noise_gen4(vec3(x, y, z) * amplitude);
+        // noise_gen4(vec3 (1.f));
         maxValue += amplitude;
         amplitude *= persistence;
         frequency *= 2.f;
     }
     return total/maxValue;
 }
+
+
 
 void main()
 {
@@ -96,24 +125,24 @@ void main()
 
     float angle = acos(dot(normalize(tempPos), vec3(0, 1, 0)));
 
-    // vec3 i = 0.01f * tempPos + 0.0000010f * vec3(u_Time);
-    // float disp = fbm_test(i.x, i.y, i.z);
-    // vec3 i = 0.000006f * vec3(tempPos) + 0.00000009f * vec3(u_Time);
-    // float disp = bias(fbm_test(i.x, i.y, i.z), 0.45f);
-    // tempPos += disp * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-    // vec3 i = 0.00001f * vec3(tempPos) + 0.0000002f * vec3(u_Time);
-    // vec3 i = 0.0001f * vec3(tempPos);
-    // float fbm_2 = bias(fbm_test(i.x, i.y, i.z), 0.97f);
+    float weight = (1.f / (angle + 0.45f));
+    vec3 fbm_input = tempPos + (0.022f * vec3(-u_Time, -u_Time, u_Time));
+    //fbm_input *= weight;
+    float fbm_macro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 1);
+    fbm_macro = bias(fbm_macro, 0.7f);
+    //weight *= (2.f * fbm_macro);
 
-    // tempPos += 1.f * fbm_2 * vec3(invTranspose * vec3(vs_Nor));
-    // tempPos += fbm_2 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-    // tempPos += 0.7f * fbm_2 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
+    // fbm_input *= 6.f;
+    vec3 fbm_input_micro = tempPos + 0.004f * vec3(-u_Time - 1000.f);
+    fbm_input_micro *= 10.f;
+    float fbm_micro = fbm(fbm_input_micro.x, fbm_input_micro.y, fbm_input_micro.z, 0.5f, 6);
+    // weight += fbm_micro * 0.6f * weight * weight * weight;
 
-    // if (angle < 0.4f) {
-    tempPos += bias((1.f / (angle + 0.0001f)), 0.65f) * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-    // }
+    // float fbm_micro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 6);
+    weight = weight * 1.f * fbm_macro;
+    //+ fbm_micro * 0.6f * weight * weight * weight;
+    tempPos += weight * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
 
-    
 
     fs_LightVec = lightPos - vec4(tempPos, 1.f);
 
@@ -121,6 +150,4 @@ void main()
                                              // used to render the final positions of the geometry's vertices
 
     fs_Pos = vec4(tempPos, 1.f);
-    // fs_Pos = gl_Position;
-    // fs_Pos = modelposition;
 }

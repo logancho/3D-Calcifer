@@ -26,7 +26,7 @@ class OpenGLRenderer {
     let model = mat4.create();
     let viewProj = mat4.create();
     let color = vec4.fromValues(rgb[0], rgb[1], rgb[2], 1);
-
+    
     mat4.identity(model);
     mat4.multiply(viewProj, camera.projectionMatrix, camera.viewMatrix);
     prog.setModelMatrix(model);

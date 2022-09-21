@@ -68,18 +68,6 @@ float bias(float t, float b) {
     return (t / ((((1.0/b) - 2.0)*(1.0 - t))+1.0));
 }
 
-float easeInOutExpo(float x) {
-return x == 0.0
-  ? 0.0
-  : x == 1.0
-  ? 1.0
-  : x < 0.5 ? pow(2.0, 20.0 * x - 10.0) / 2.0
-  : (2.0 - pow(2.0, -20.0 * x + 10.0)) / 2.0;
-}
-
-float easeInOutCubic(float x) {
-    return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;
-}
 
 void main()
 {
@@ -111,20 +99,19 @@ void main()
         // if (abs(dot(vec3(fs_Nor), vec3(0, 1, 0))) > 0.5f) {
         // out_Col = vec4(247.f / 255.f, 191.f / 255.f, 65.f / 255.f, 1.f);
         // out_Col = vec4( mix(vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f), vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f), length(vec3(fs_Pos))));
-        vec3 yellow = vec3(250.f / 255.f, 188.f / 255.f, 70.f / 255.f);
-        vec3 red = vec3(191.f / 255.f, 74.f / 255.f, 50.f / 255.f);
-
-        float dist = length(fs_Pos);
-        dist = 1.f;
-        // vec3 comparison = normalize(vec3(0) - vec3(0, 0, 1));
-        // dist = acos(dot(normalize(vec3(fs_Nor)), vec3(0, 0, 1))))));
-        dist = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos)) ));
-        dist = easeInOutCubic(dist + 0.05f * sin(0.05f * u_Time));
-        vec3 ipol = mix(yellow, red, dist);
-
+        vec3 black = vec3(80.f / 255.f, 73.f / 255.f, 75.f / 255.f);
         // if (dist < 0.6f) {
         //     ipol = yellow;
         // }
+        vec3 ipol = black;
+        
+        //Iris
+        //If angle from (0, 0, -1) to fs_Nor is smaller than 0.1, iris!
+        // float a = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(0, 0, -1))));
+        // if (abs(a) < 0.6f) {
+        //     ipol = vec3(0.01, 0.01, 0.01);
+        // }
+
         out_Col = vec4(ipol, 1.0f);
         // out
         // out_Col = vec4(vec3(normalize(red)), 1.f);

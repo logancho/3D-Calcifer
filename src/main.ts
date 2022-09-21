@@ -22,12 +22,18 @@ const controls = {
 
 let icosphere: Icosphere;
 let leftEye: Icosphere;
+let leftIris: Icosphere;
+let rightEye: Icosphere;
+let rightIris: Icosphere;
+
 let square: Square;
 let cube: Cube;
 let prevTesselations: number = 5;
 let prevR: number = 1;
 let prevG: number = 0.0;
 let prevB: number = 0.0;
+let leftEyeCenter: vec3 = vec3.fromValues(0.65, 0.1, -1.2);
+let rightEyeCenter: vec3 = vec3.fromValues(-0.65, 0.1, -1.2);
 
 
 //time:
@@ -38,8 +44,14 @@ function loadScene() {
   
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
-  leftEye = new Icosphere(vec3.fromValues(-0.4, 0.1, 0.8), 0.2, controls.tesselations);
+  leftEye = new Icosphere(leftEyeCenter, 0.2, controls.tesselations);
   leftEye.create();
+  rightEye = new Icosphere(rightEyeCenter, 0.2, controls.tesselations);
+  rightEye.create();
+  leftIris = new Icosphere(vec3.fromValues(0.65, 0.1, -1.35), 0.08, controls.tesselations);
+  leftIris.create();
+  rightIris = new Icosphere(vec3.fromValues(-0.65, 0.1, -1.35), 0.08, controls.tesselations);
+  rightIris.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
   //Cube:
@@ -81,7 +93,7 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0.0, 0.0, 5.0), vec3.fromValues(0.0, 0.0, 0.0));
+  const camera = new Camera(vec3.fromValues(0.0, 0.0, -10.0), vec3.fromValues(0.0, 0.0, 0.0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
@@ -104,13 +116,29 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBall-frag.glsl')),
   ]);
 
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  
-  // gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  const fireBallEye = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallEye-frag.glsl')),
+  ]);
 
+  const fireBallIris = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallIris-frag.glsl')),
+  ]);
+
+  // (glDisable(GL_CULL_FACE) )
+  // gl.enable(gl.FRONT);
+  // gl.enable(gl.CULL_FACE);
+  // gl.glCullFace(GL_FR
+  // gl.cullFace(gl.FRONT);
+  // gl.enable(gl.BLEND);
+  // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   // This function will be called every frame
   function tick() {
+    gl.disable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
     time++;
     camera.update();
     console.log("bruh");
@@ -123,8 +151,10 @@ function main() {
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
       icosphere.create();
 
-      leftEye = new Icosphere(vec3.fromValues(2, 2, 0), 0.2, controls.tesselations);
+      leftEye = new Icosphere(vec3.fromValues(0.65, 0.1, -0.8), 0.2, controls.tesselations);
       leftEye.create();
+      rightEye = new Icosphere(vec3.fromValues(-0.65, 0.1, -0.8), 0.2, controls.tesselations);
+      rightEye.create();
     }
     if(controls.R != prevR)
     {
@@ -151,17 +181,28 @@ function main() {
       // camera.position,
       time
     );
-
-    // renderer.render(camera, fireBall, [
-    //   // icosphere,
-    //   // leftEye,
-    //   square,
-    //   // square,
-    //   // cube,
-    //   ],
-    //   vec3.fromValues(controls.R, controls.G, controls.B),
-    //   time
-    // );
+    renderer.render(camera, fireBallEye, [
+      // icosphere,
+      leftEye,
+      rightEye,
+      // square,
+      // square,
+      // cube,
+      ],
+      vec3.fromValues(controls.R, controls.G, controls.B),
+      time
+    );
+    renderer.render(camera, fireBallIris, [
+      // icosphere,
+      leftIris,
+      rightIris,
+      // square,
+      // square,
+      // cube,
+      ],
+      vec3.fromValues(controls.R, controls.G, controls.B),
+      time
+    );
 
     stats.end();
 
