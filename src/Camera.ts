@@ -40,14 +40,6 @@ class Camera {
     mat4.lookAt(this.viewMatrix, this.controls.eye, this.controls.center, this.controls.up);
     console.log(this.target);
   }
-
-  // vec3 getPosition() {
-
-  // }
-  // getPosition(): vec3 {
-  //   return this.position;
-// }
-
 };
 
 export default Camera;

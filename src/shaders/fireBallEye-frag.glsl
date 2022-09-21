@@ -100,6 +100,7 @@ void main()
         // out_Col = vec4(247.f / 255.f, 191.f / 255.f, 65.f / 255.f, 1.f);
         // out_Col = vec4( mix(vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f), vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f), length(vec3(fs_Pos))));
         vec3 white = vec3(253.f / 255.f, 242.f / 255.f, 223.f /255.f);
+        vec3 black = vec3(80.f / 255.f, 73.f / 255.f, 75.f / 255.f);
         // if (dist < 0.6f) {
         //     ipol = yellow;
         // }
@@ -120,12 +121,6 @@ void main()
         //     ipol = vec3(0.01, 0.01, 0.01);
         // }
 
-        //Angle between fs_Pos and camera needs to be at most ...
-        // float a = acos(dot(normalize(vec3(fs_Pos)), normalize(vec3(u_CamPos))));
-        // if (abs(a) > 0.8f) {
-        //     ipol = vec3(0.f);
-        // } 
-        
         out_Col = vec4(ipol, 1.0f);
         // out
         // out_Col = vec4(vec3(normalize(red)), 1.f);

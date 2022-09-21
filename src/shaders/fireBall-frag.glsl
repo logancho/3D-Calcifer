@@ -27,6 +27,7 @@ out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
 
 int N_OCTAVES = 1;
+#define PI 3.1415926538
 
 float noise_gen2(float x, float y, float z, float w) {
     return fract(sin(dot(vec4(x, y, z, w), vec4(1.9898, 7.233, 4.984, 100.2974))) * 437.54531);
@@ -81,6 +82,10 @@ float easeInOutCubic(float x) {
     return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;
 }
 
+float fade(float t) {
+    return 6.0 * pow(t, 5.0) - 15.0 * pow(t, 4.0) + 10.0 * 10.0 *pow(t, 3.0);
+}
+
 void main()
 {
     // Material base color (before shading)
@@ -112,14 +117,16 @@ void main()
         // out_Col = vec4(247.f / 255.f, 191.f / 255.f, 65.f / 255.f, 1.f);
         // out_Col = vec4( mix(vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f), vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f), length(vec3(fs_Pos))));
         vec3 yellow = vec3(250.f / 255.f, 188.f / 255.f, 70.f / 255.f);
-        vec3 red = vec3(191.f / 255.f, 74.f / 255.f, 50.f / 255.f);
+        vec3 red = vec3(200.f / 255.f, 74.f / 255.f, 50.f / 255.f);
 
         float dist = length(fs_Pos);
         dist = 1.f;
         // vec3 comparison = normalize(vec3(0) - vec3(0, 0, 1));
         // dist = acos(dot(normalize(vec3(fs_Nor)), vec3(0, 0, 1))))));
-        dist = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos)) ));
-        dist = easeInOutCubic(dist + 0.05f * sin(0.05f * u_Time));
+        dist = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos))));
+        dist /= (2.0*PI);
+        dist = fade(dist);
+        dist = easeInOutCubic(dist + 0.09f * sin(0.12f * u_Time) + 0.2f);
         vec3 ipol = mix(yellow, red, dist);
 
         // if (dist < 0.6f) {

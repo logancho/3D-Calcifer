@@ -108,6 +108,9 @@ float fbm(float x, float y, float z, float persistence, int N_OCTAVES) {
 }
 
 
+//let leftEyeCenter: vec3 = vec3.fromValues(0.65, 0.1, -1.2);
+
+vec3 leftEyeCenter = vec3(0.65, 0.1, -1.2);
 
 void main()
 {
@@ -119,33 +122,41 @@ void main()
     vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
 
     vec3 tempPos = vec3(modelposition);
-    vec3 center = vec3(0);
+    vec3 center = leftEyeCenter;
 
     //First, calculate the angle between tempPos and the center
 
-    float angle = acos(dot(normalize(tempPos + vec3(0, 0, 0)), vec3(0, 1, 0)));
+    // float angle = acos(dot(normalize(tempPos + vec3(0, 0, 0)), vec3(0, 1, 0)));
 
-    float weight = (1.f / (angle + 0.45f));
-    vec3 fbm_input = tempPos + (0.028f * vec3(-u_Time, -u_Time, u_Time));
-    // fbm_input *= weight;
-    float fbm_macro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 1);
-    fbm_macro = bias(fbm_macro, 0.7f);
+    // float weight = (1.f / (angle + 0.45f));
+    float weight = 1.f;
+    float angle_1 = acos(dot(normalize(vec3(vs_Pos) - center), vec3(0, 0, -1)));
+    float angle_2 = acos(dot(normalize(vec3(vs_Pos) - center), vec3(0, 1, 0)));
 
-    vec3 fbm_input_micro = tempPos + 0.003f * vec3(-u_Time - 1000.f);
-    fbm_input_micro *= 7.f;
-    float fbm_micro = fbm(fbm_input_micro.x, fbm_input_micro.y, fbm_input_micro.z, 0.5f, 7);
+    // if (angle_1 < 0.2f) {
+    //     weight = 2.f;
+    // }
+    //weight = weight * (angle_2) * fbm_macro + 0.25f;
+
+    // vec3 fbm_input = tempPos + (0.001f * vec3(-u_Time, -u_Time, u_Time));
+    // fbm_input *= 10.f;
+    // float fbm_macro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 6);
+    // fbm_macro = bias(fbm_macro, 0.7f);
+
+    // vec3 fbm_input_micro = tempPos + 0.004f * vec3(-u_Time - 1000.f);
+    // fbm_input_micro *= 10.f;
+    // float fbm_micro = fbm(fbm_input_micro.x, fbm_input_micro.y, fbm_input_micro.z, 0.5f, 6);
     // weight += fbm_micro * 0.6f * weight * weight * weight;
 
     // float fbm_micro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 6);
-    float weight_final = 1.f;
-    float angle_2 = acos(dot(normalize(vec3(vs_Pos)), vec3(0, 0, -1)));
-    weight_final = weight * (angle_2) * fbm_macro + 0.25f;
-    weight_final += (fbm_micro-0.5f) * 0.2f * pow(weight, 3.0);
-    
-    // if (angle_2 > 0.5f && angle_2 < 0.8f) {
-    //     weight += 0.2 * (1.0 - angle_2);
-    // }
-    tempPos += weight_final * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
+    // float angle_2 = acos(dot(normalize(vec3(vs_Pos)), vec3(0, 0, -1)));
+    // float angle_2 = acos(dot(normalize(vec3(vs_Pos)), vec3(0, 0, -1)));
+    // weight *= 0.02f * sin(angle_1) * (fbm_macro + 0.6f);
+
+    // weight += fbm_macro * 2.f;
+
+    // weight = weight * (angle_1) * fbm_macro + 0.25f;
+    // tempPos += weight * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
 
 
     // float weight_2 = 1.0 / (angle_2 + 0.95f);

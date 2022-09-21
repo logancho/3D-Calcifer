@@ -1,4 +1,4 @@
-import {vec3} from 'gl-matrix';
+import {vec3, mat4} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
 import Icosphere from './geometry/Icosphere';
@@ -25,6 +25,7 @@ let leftEye: Icosphere;
 let leftIris: Icosphere;
 let rightEye: Icosphere;
 let rightIris: Icosphere;
+let mouth: Icosphere;
 
 let square: Square;
 let cube: Cube;
@@ -34,6 +35,7 @@ let prevG: number = 0.0;
 let prevB: number = 0.0;
 let leftEyeCenter: vec3 = vec3.fromValues(0.65, 0.1, -1.2);
 let rightEyeCenter: vec3 = vec3.fromValues(-0.65, 0.1, -1.2);
+let mouthPos: vec3 = vec3.fromValues(0.0, -0.3, -1.2);
 
 
 //time:
@@ -48,10 +50,12 @@ function loadScene() {
   leftEye.create();
   rightEye = new Icosphere(rightEyeCenter, 0.2, controls.tesselations);
   rightEye.create();
-  leftIris = new Icosphere(vec3.fromValues(0.65, 0.1, -1.35), 0.08, controls.tesselations);
+  leftIris = new Icosphere(vec3.fromValues(0.65, 0.1, -1.276), 0.13, controls.tesselations);
   leftIris.create();
-  rightIris = new Icosphere(vec3.fromValues(-0.65, 0.1, -1.35), 0.08, controls.tesselations);
+  rightIris = new Icosphere(vec3.fromValues(-0.65, 0.1, -1.276), 0.13, controls.tesselations);
   rightIris.create();
+  mouth = new Icosphere(mouthPos, 0.13, controls.tesselations);
+  mouth.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
   //Cube:
@@ -117,7 +121,7 @@ function main() {
   ]);
 
   const fireBallEye = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireBallEye-vert.glsl')),
     // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallEye-frag.glsl')),
   ]);
@@ -171,6 +175,7 @@ function main() {
     //Add time input into this call!!!
     // gl.disable(gl.DEPTH_TEST);
 
+    let id: mat4 = mat4.create();
     renderer.render(camera, fireBall, [
       icosphere,
       // leftEye,
@@ -179,7 +184,7 @@ function main() {
       ],
       vec3.fromValues(controls.R, controls.G, controls.B),
       // camera.position,
-      time
+      time, [id,]
     );
     renderer.render(camera, fireBallEye, [
       // icosphere,
@@ -190,7 +195,7 @@ function main() {
       // cube,
       ],
       vec3.fromValues(controls.R, controls.G, controls.B),
-      time
+      time, [id, ]
     );
     renderer.render(camera, fireBallIris, [
       // icosphere,
@@ -201,7 +206,25 @@ function main() {
       // cube,
       ],
       vec3.fromValues(controls.R, controls.G, controls.B),
-      time
+      time, [id, ]
+    );
+    let mouthScale: mat4 = mat4.create();
+    let mouthTrans: mat4 = mat4.create();
+    let mouthModel: mat4 = mat4.create();
+    
+    mat4.scale(mouthScale, id, vec3.fromValues(2.0, 0.2, 0.1));
+    mat4.translate(mouthTrans, id, mouthPos);
+    
+    mat4.multiply(mouthModel, mouthTrans, mouthScale);
+    renderer.render(camera, lambert, [
+      // icosphere,
+      mouth,
+      // square,
+      // square,
+      // cube,
+      ],
+      vec3.fromValues(controls.R, controls.G, controls.B),
+      time, [mouthModel,]
     );
 
     stats.end();
