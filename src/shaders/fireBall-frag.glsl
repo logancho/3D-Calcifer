@@ -29,6 +29,8 @@ out vec4 out_Col; // This is the final output color that you will see on your
 int N_OCTAVES = 1;
 #define PI 3.1415926538
 
+float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+
 float noise_gen2(float x, float y, float z, float w) {
     return fract(sin(dot(vec4(x, y, z, w), vec4(1.9898, 7.233, 4.984, 100.2974))) * 437.54531);
 }
@@ -86,6 +88,8 @@ float fade(float t) {
     return 6.0 * pow(t, 5.0) - 15.0 * pow(t, 4.0) + 10.0 * 10.0 *pow(t, 3.0);
 }
 
+vec3 mouthCenter = vec3(0.0, -0.3, -1.2);
+
 void main()
 {
     // Material base color (before shading)
@@ -131,6 +135,23 @@ void main()
 
         // if (dist < 0.6f) {
         //     ipol = yellow;
+        // }
+
+
+        vec3 mouthPoint = vec3(fs_Pos);
+        float mouthAngle = acos(dot(normalize(vec3(fs_Pos) - vec3(mouthCenter)), normalize(vec3(0, 1, 0))));
+        vec3 dir = normalize(mouthPoint - mouthCenter);
+        mouthPoint += 0.15f * sin(mouthAngle * 2.6f + 0.01f * u_Time) * dir;
+
+        float mouthDist = length(vec3(mouthPoint) - vec3(mouthCenter));
+        float mouthDistY = abs(mouthPoint.y - mouthCenter.y);
+
+        if (mouthDist <= 0.2f) {
+                    vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);
+                    ipol = mouth;
+        }
+        // if (mouthDist <= 0.3f && mouthDistY <= 0.10f) {
+        //     // float mouthAngle = acos(dot(normalize(vec3(fs_Pos)), vec3(mouthCenter)));
         // }
         out_Col = vec4(ipol, 1.0f);
         // out

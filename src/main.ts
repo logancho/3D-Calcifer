@@ -1,4 +1,4 @@
-import {vec3, mat4} from 'gl-matrix';
+import {vec3, mat4, mat3} from 'gl-matrix';
 const Stats = require('stats-js');
 import * as DAT from 'dat.gui';
 import Icosphere from './geometry/Icosphere';
@@ -132,13 +132,12 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallIris-frag.glsl')),
   ]);
 
-  // (glDisable(GL_CULL_FACE) )
-  // gl.enable(gl.FRONT);
-  // gl.enable(gl.CULL_FACE);
-  // gl.glCullFace(GL_FR
-  // gl.cullFace(gl.FRONT);
-  // gl.enable(gl.BLEND);
-  // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  const fireBallMouth = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireBallMouth-vert.glsl')),
+    // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallMouth-frag.glsl')),
+  ]);
+
   // This function will be called every frame
   function tick() {
     gl.disable(gl.CULL_FACE);
@@ -176,6 +175,7 @@ function main() {
     // gl.disable(gl.DEPTH_TEST);
 
     let id: mat4 = mat4.create();
+    mat4.identity(id);
     renderer.render(camera, fireBall, [
       icosphere,
       // leftEye,
@@ -209,23 +209,26 @@ function main() {
       time, [id, ]
     );
     let mouthScale: mat4 = mat4.create();
+    mat4.fromScaling(mouthScale, vec3.fromValues(2.0, 0.8, 1.2));
     let mouthTrans: mat4 = mat4.create();
+    mat4.fromTranslation(mouthTrans, mouthPos);
+    mat4.invert(mouthTrans, mouthTrans);
+    // mat4.identity(mouthTrans);
     let mouthModel: mat4 = mat4.create();
-    
-    mat4.scale(mouthScale, id, vec3.fromValues(2.0, 0.2, 0.1));
-    mat4.translate(mouthTrans, id, mouthPos);
-    
-    mat4.multiply(mouthModel, mouthTrans, mouthScale);
-    renderer.render(camera, lambert, [
-      // icosphere,
-      mouth,
-      // square,
-      // square,
-      // cube,
-      ],
-      vec3.fromValues(controls.R, controls.G, controls.B),
-      time, [mouthModel,]
-    );
+    // mat4.identity(mouthModel);
+    mat4.multiply(mouthModel, mouthScale, mouthTrans);
+    mat4.invert(mouthTrans, mouthTrans);
+    mat4.multiply(mouthModel, mouthTrans, mouthModel);
+    // renderer.render(camera, fireBallMouth, [
+    //   // icosphere,
+    //   mouth,
+    //   // square,
+    //   // square,
+    //   // cube,
+    //   ],
+    //   vec3.fromValues(controls.R, controls.G, controls.B),
+    //   time, [mouthModel,]
+    // );
 
     stats.end();
 

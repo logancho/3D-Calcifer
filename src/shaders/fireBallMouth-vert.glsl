@@ -40,31 +40,6 @@ const vec4 lightPos = vec4(0, 5, 0, 1); //The position of our virtual light, whi
 
 int N_OCTAVES = 1;
 
-float noise_gen2(float x, float y, float z, float w) {
-    return fract(sin(dot(vec4(x, y, z, w), vec4(1.9898, 7.233, 4.984, 100.2974))) * 437.54531);
-}
-
-// float fbm(float x, float y, float z) {
-//     float total = 0.f;
-//     float persistence = 1.f / 2.f;
-//     float amplitude = 1.f;
-//     float frequency = 1.f;
-//     for (int i = 0; i < N_OCTAVES; ++i) {
-//         frequency *= 2.f;
-//         amplitude *= persistence;
-//         total += amplitude * noise_gen2(x, y, z, frequency);
-//     }
-//     return total;
-// }
-
-float bias(float t, float b) {
-    return (t / ((((1.0/b) - 2.0)*(1.0 - t))+1.0));
-}
-
-float noise_gen3(float x, float y, float z) {
-    return fract(sin(dot(vec3(x, y, z), vec3(24.5634, 17.32445, 28.2345))) * 4337.54531);
-}
-
 // Precision-adjusted variations of https://www.shadertoy.com/view/4djSRW
 float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
 float hash(vec2 p) {vec3 p3 = fract(vec3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
@@ -107,10 +82,27 @@ float fbm(float x, float y, float z, float persistence, int N_OCTAVES) {
     return total/maxValue;
 }
 
+float easeInOutExpo(float x) {
+return x == 0.0
+  ? 0.0
+  : x == 1.0
+  ? 1.0
+  : x < 0.5 ? pow(2.0, 20.0 * x - 10.0) / 2.0
+  : (2.0 - pow(2.0, -20.0 * x + 10.0)) / 2.0;
+}
+
+float easeInOutCubic(float x) {
+    return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;
+}
+
+float fade(float t) {
+    return 6.0 * pow(t, 5.0) - 15.0 * pow(t, 4.0) + 10.0 * 10.0 *pow(t, 3.0);
+}
 
 //let leftEyeCenter: vec3 = vec3.fromValues(0.65, 0.1, -1.2);
 
 vec3 leftEyeCenter = vec3(0.65, 0.1, -1.2);
+vec3 mouthCenter = vec3(0.0, -0.3, -1.2);
 
 void main()
 {
@@ -122,7 +114,7 @@ void main()
     vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
 
     vec3 tempPos = vec3(modelposition);
-    vec3 center = leftEyeCenter;
+    vec3 center = mouthCenter;
 
     //First, calculate the angle between tempPos and the center
 
@@ -130,43 +122,10 @@ void main()
 
     // float weight = (1.f / (angle + 0.45f));
     float weight = 1.f;
-    float angle_1 = acos(dot(normalize(vec3(vs_Pos) - center), vec3(0, 0, -1)));
-    float angle_2 = acos(dot(normalize(vec3(vs_Pos) - center), vec3(0, 1, 0)));
-
-    // if (angle_1 < 0.2f) {
-    //     weight = 2.f;
-    // }
-    //weight = weight * (angle_2) * fbm_macro + 0.25f;
-
-    // vec3 fbm_input = tempPos + (0.001f * vec3(-u_Time, -u_Time, u_Time));
-    // fbm_input *= 10.f;
-    // float fbm_macro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 6);
-    // fbm_macro = bias(fbm_macro, 0.7f);
-
-    // vec3 fbm_input_micro = tempPos + 0.004f * vec3(-u_Time - 1000.f);
-    // fbm_input_micro *= 10.f;
-    // float fbm_micro = fbm(fbm_input_micro.x, fbm_input_micro.y, fbm_input_micro.z, 0.5f, 6);
-    // weight += fbm_micro * 0.6f * weight * weight * weight;
-
-    // float fbm_micro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 6);
-    // float angle_2 = acos(dot(normalize(vec3(vs_Pos)), vec3(0, 0, -1)));
-    // float angle_2 = acos(dot(normalize(vec3(vs_Pos)), vec3(0, 0, -1)));
-    // weight *= 0.02f * sin(angle_1) * (fbm_macro + 0.6f);
-
-    // weight += fbm_macro * 2.f;
-
-    // weight = weight * (angle_1) * fbm_macro + 0.25f;
-    // tempPos += weight * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-
-
-    // float weight_2 = 1.0 / (angle_2 + 0.95f);
-    // weight_2 = bias(weight_2, 0.9f);
-    // if (weight_2 > 0.5f) {
-    // tempPos -= weight_2 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-    // }
-    //Everything on the front half of the sphere, should go inwards by a little bit, proportionate to 
-
-
+    // float angle_1 = acos(dot(normalize(vec3(vs_Pos)), vec3(0, 0, 1)));
+    weight = length(vec3(tempPos) - center);
+    // tempPos += 0.1f * weight * vec3(0, 0, 1);
+    // tempPos += 0.04f * angle_1 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
     fs_LightVec = lightPos - vec4(tempPos, 1.f);
 
     gl_Position = u_ViewProj * vec4(tempPos, 1.f);// gl_Position is a built-in variable of OpenGL which is
