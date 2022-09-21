@@ -1,7 +1,9 @@
-import {vec2, vec3} from 'gl-matrix';
-// import * as Stats from 'stats-js';
-// import * as DAT from 'dat-gui';
+import {vec3} from 'gl-matrix';
+const Stats = require('stats-js');
+import * as DAT from 'dat.gui';
+import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
+import Cube from './geometry/Cube';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
@@ -12,41 +14,57 @@ import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
+  // default_color: vec3.fromValues(1, 0, 0)
+  R: 1.0,
+  G: 0.0,
+  B: 0.0,
 };
 
+let icosphere: Icosphere;
+let leftEye: Icosphere;
 let square: Square;
-let time: number = 0;
+let cube: Cube;
+let prevTesselations: number = 5;
+let prevR: number = 1;
+let prevG: number = 0.0;
+let prevB: number = 0.0;
+//time:
+let time: number = 0.0;
 
 function loadScene() {
+  
+  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
+  icosphere.create();
+  leftEye = new Icosphere(vec3.fromValues(-0.4, 0.1, 0.8), 0.2, controls.tesselations);
+  leftEye.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
-  // time = 0;
+  //Cube:
+  cube = new Cube(vec3.fromValues(0, 0, 0));
+  cube.create();
 }
 
+
+//Update the existing GUI in main.ts with:
+//    a parameter to alter the color passed to u_Color in the Lambert shader. 
+
+
 function main() {
-  window.addEventListener('keypress', function (e) {
-    // console.log(e.key);
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
-  window.addEventListener('keyup', function (e) {
-    switch(e.key) {
-      // Use this if you wish
-    }
-  }, false);
-
   // Initial display for framerate
-  // const stats = Stats();
-  // stats.setMode(0);
-  // stats.domElement.style.position = 'absolute';
-  // stats.domElement.style.left = '0px';
-  // stats.domElement.style.top = '0px';
-  // document.body.appendChild(stats.domElement);
+  const stats = Stats();
+  stats.setMode(0);
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.left = '0px';
+  stats.domElement.style.top = '0px';
+  document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  // const gui = new DAT.GUI();
+  const gui = new DAT.GUI();
+  gui.add(controls, 'tesselations', 0, 8).step(1);
+  gui.add(controls, 'Load Scene');
+  gui.add(controls, 'R', 0.0, 1.0).step(0.01);
+  gui.add(controls, 'G', 0.0, 1.0).step(0.01);
+  gui.add(controls, 'B', 0.0, 1.0).step(0.01);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -61,33 +79,88 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 0, -10), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(164.0 / 255.0, 233.0 / 255.0, 1.0, 1);
+  renderer.setClearColor(0.0, 0.0, 0.0, 1);
   gl.enable(gl.DEPTH_TEST);
 
-  const flat = new ShaderProgram([
-    new Shader(gl.VERTEX_SHADER, require('./shaders/flat-vert.glsl')),
-    new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
+  const lambert = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
   ]);
 
-  function processKeyPresses() {
-    // Use this if you wish
-  }
+  const custom_perlin = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/lambert-vert.glsl')),
+    // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/customPerlin-frag.glsl')),
+  ]);
+
+  const fireBall = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/fireBall-vert.glsl')),
+    // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBall-frag.glsl')),
+  ]);
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  
+  // gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // This function will be called every frame
   function tick() {
+    time++;
     camera.update();
-    // stats.begin();
+    stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    processKeyPresses();
-    renderer.render(camera, flat, [
+    if(controls.tesselations != prevTesselations)
+    {
+      prevTesselations = controls.tesselations;
+      icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
+      icosphere.create();
+
+      leftEye = new Icosphere(vec3.fromValues(2, 2, 0), 0.2, controls.tesselations);
+      leftEye.create();
+    }
+    if(controls.R != prevR)
+    {
+      prevR = controls.R;
+    }
+    if(controls.G != prevG)
+    {
+      prevG = controls.G;
+    }
+    if(controls.B != prevB)
+    {
+      prevB = controls.B;
+    }
+
+    //Add time input into this call!!!
+    // gl.disable(gl.DEPTH_TEST);
+
+    renderer.render(camera, lambert, [
+      icosphere,
+      // leftEye,
+      // square,
+      // cube,
+      ],
+      vec3.fromValues(controls.R, controls.G, controls.B),
+      time
+    );
+
+    renderer.render(camera, fireBall, [
+      // icosphere,
+      // leftEye,
       square,
-    ], time);
-    time++;
-    // stats.end();
+      // square,
+      // cube,
+      ],
+      vec3.fromValues(controls.R, controls.G, controls.B),
+      time
+    );
+
+    stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
@@ -97,13 +170,11 @@ function main() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    flat.setDimensions(window.innerWidth, window.innerHeight);
   }, false);
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
-  flat.setDimensions(window.innerWidth, window.innerHeight);
 
   // Start the render loop
   tick();
