@@ -32,6 +32,8 @@ class ShaderProgram {
   //Custom
   unifCamPos: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
+  unifRoughness: WebGLUniformLocation;
+  unifHappy: WebGLUniformLocation;
   //
 
   constructor(shaders: Array<Shader>) {
@@ -54,6 +56,8 @@ class ShaderProgram {
     this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
     this.unifCamPos   = gl.getUniformLocation(this.prog, "u_CamPos");
     this.unifTime = gl.getUniformLocation(this.prog, "u_Time");
+    this.unifRoughness = gl.getUniformLocation(this.prog, "u_Rough");
+    this.unifHappy = gl.getUniformLocation(this.prog, "u_Happy");
   }
 
   use() {
@@ -105,6 +109,19 @@ class ShaderProgram {
     }
   }
 
+  setRoughness(r: number) {
+    this.use();
+    if (this.unifRoughness !== -1) {
+      gl.uniform1f(this.unifRoughness, r);
+    }
+  }
+
+  setHappy(h: number) {
+    this.use();
+    if (this.unifHappy !== -1) {
+      gl.uniform1f(this.unifHappy, h);
+    }
+  }
   draw(d: Drawable) {
     this.use();
 

@@ -23,6 +23,8 @@ uniform vec4 u_CamPos;
 
 uniform float u_Time;
 
+uniform float u_Rough;
+
 in vec4 vs_Pos;             // The array of vertex positions passed to the shader
 
 in vec4 vs_Nor;             // The array of vertex normals passed to the shader
@@ -137,11 +139,12 @@ void main()
     fbm_macro = bias(fbm_macro, 0.7f);
 
     vec3 fbm_input_micro = tempPos + 0.003f * vec3(-u_Time - 1000.f);
-    fbm_input_micro *= 10.f;
+    fbm_input_micro *= pow(10.f, u_Rough * 2.f);
     float fbm_micro = fbm(fbm_input_micro.x, fbm_input_micro.y, fbm_input_micro.z, 0.5f, 7);
 
     float weight_final = 1.f;
     float angle_2 = acos(dot(normalize(vec3(tempPos)), vec3(0, 0, -1)));
+
     weight_final = pow(weight, 1.0) * (angle_2) * fbm_macro + 0.25f;
     weight_final += (fbm_micro-0.5f) * 0.2f * pow(weight, 3.0);
 

@@ -15,10 +15,12 @@ const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
   // default_color: vec3.fromValues(1, 0, 0)
-  R: 1.0,
-  G: 0.0,
-  B: 0.0,
-  FireRoughness: 0.0,
+  // R: 1.0,
+  // G: 0.0,
+  // B: 0.0,
+  FireRoughness: 0.75,
+  Speed: 1.0,
+  Happy: true,
 };
 
 let icosphere: Icosphere;
@@ -35,6 +37,8 @@ let prevR: number = 1;
 let prevG: number = 0.0;
 let prevB: number = 0.0;
 let prevFireRoughness: number = 0.0;
+let prevSpeed: number = 1.0;
+let prevHappy: boolean = true;
 
 
 let leftEyeCenter: vec3 = vec3.fromValues(0.74, 0.0, -1.2);
@@ -82,10 +86,12 @@ function main() {
   const gui = new DAT.GUI();
   gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.add(controls, 'Load Scene');
-  gui.add(controls, 'R', 0.0, 1.0).step(0.01);
-  gui.add(controls, 'G', 0.0, 1.0).step(0.01);
-  gui.add(controls, 'B', 0.0, 1.0).step(0.01);
+  // gui.add(controls, 'R', 0.0, 1.0).step(0.01);
+  // gui.add(controls, 'G', 0.0, 1.0).step(0.01);
+  // gui.add(controls, 'B', 0.0, 1.0).step(0.01);
   gui.add(controls, 'FireRoughness', 0.0, 1.0).step(0.01);
+  gui.add(controls, 'Speed', 0.0, 5.0).step(0.5);
+  gui.add(controls, 'Happy');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -162,20 +168,15 @@ function main() {
       rightEye = new Icosphere(vec3.fromValues(-0.65, 0.1, -0.8), 0.2, controls.tesselations);
       rightEye.create();
     }
-    if(controls.R != prevR)
-    {
-      prevR = controls.R;
-    }
-    if(controls.G != prevG)
-    {
-      prevG = controls.G;
-    }
-    if(controls.B != prevB)
-    {
-      prevB = controls.B;
-    }
+
     if (controls.FireRoughness != prevFireRoughness) {
       prevFireRoughness = controls.FireRoughness;
+    }
+    if (controls.Speed != prevSpeed) {
+      prevSpeed = controls.Speed;
+    }
+    if (controls.Happy != prevHappy) {
+      prevHappy = controls.Happy;
     }
     //Add time input into this call!!!
     // gl.disable(gl.DEPTH_TEST);
@@ -188,9 +189,9 @@ function main() {
       // square,
       // cube,
       ],
-      vec3.fromValues(controls.R, controls.G, controls.B),
+      // vec3.fromValues(controls.R, controls.G, controls.B),
       // camera.position,
-      time, [id,]
+      time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]
     );
     renderer.render(camera, fireBallEye, [
       // icosphere,
@@ -200,8 +201,8 @@ function main() {
       // square,
       // cube,
       ],
-      vec3.fromValues(controls.R, controls.G, controls.B),
-      time, [id, ]
+      // vec3.fromValues(controls.R, controls.G, controls.B),
+      time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
     );
     renderer.render(camera, fireBallIris, [
       // icosphere,
@@ -211,8 +212,8 @@ function main() {
       // square,
       // cube,
       ],
-      vec3.fromValues(controls.R, controls.G, controls.B),
-      time, [id, ]
+      // vec3.fromValues(controls.R, controls.G, controls.B),
+      time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
     );
     let mouthScale: mat4 = mat4.create();
     mat4.fromScaling(mouthScale, vec3.fromValues(2.0, 0.8, 1.2));

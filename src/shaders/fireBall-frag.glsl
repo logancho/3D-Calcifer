@@ -14,6 +14,7 @@ precision highp float;
 uniform vec4 u_Color; // The color with which to render this instance of geometry.
 uniform float u_Time;
 uniform vec4 u_CamPos;
+uniform float u_Happy;
 
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
@@ -143,7 +144,7 @@ void main()
         
         vec3 dir = normalize(mouthPoint - mouthCenter);
         // mouthPoint += 0.55f * length(mouthPoint - mouthCenter) * sin(mouthAngle * 2.4f + 1.2f) * dir;
-        mouthPoint += 0.15f * sin(-mouthAngle * 2.2f + 1.2f) * dir;
+        mouthPoint += 0.15f * sin(u_Happy * -mouthAngle * 2.2f + 1.2f) * dir;
         // mouthPoint += 0.02f * cos(mouthAngle * 2.6f + 0.1f * u_Time) * dir;
 
         float mouthDist = length(vec3(mouthPoint) - vec3(mouthCenter));
