@@ -33,8 +33,8 @@ let prevTesselations: number = 5;
 let prevR: number = 1;
 let prevG: number = 0.0;
 let prevB: number = 0.0;
-let leftEyeCenter: vec3 = vec3.fromValues(0.65, 0.1, -1.2);
-let rightEyeCenter: vec3 = vec3.fromValues(-0.65, 0.1, -1.2);
+let leftEyeCenter: vec3 = vec3.fromValues(0.74, 0.0, -1.2);
+let rightEyeCenter: vec3 = vec3.fromValues(-0.74, 0.0, -1.2);
 let mouthPos: vec3 = vec3.fromValues(0.0, -0.3, -1.2);
 
 
@@ -50,9 +50,9 @@ function loadScene() {
   leftEye.create();
   rightEye = new Icosphere(rightEyeCenter, 0.2, controls.tesselations);
   rightEye.create();
-  leftIris = new Icosphere(vec3.fromValues(0.65, 0.1, -1.276), 0.13, controls.tesselations);
+  leftIris = new Icosphere(vec3.fromValues(0.74, 0.0, -1.276), 0.13, controls.tesselations);
   leftIris.create();
-  rightIris = new Icosphere(vec3.fromValues(-0.65, 0.1, -1.276), 0.13, controls.tesselations);
+  rightIris = new Icosphere(vec3.fromValues(-0.74, 0.0, -1.276), 0.13, controls.tesselations);
   rightIris.create();
   mouth = new Icosphere(mouthPos, 0.13, controls.tesselations);
   mouth.create();

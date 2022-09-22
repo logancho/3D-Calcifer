@@ -138,40 +138,15 @@ void main()
     fbm_macro = bias(fbm_macro, 0.7f);
 
     vec3 fbm_input_micro = tempPos + 0.003f * vec3(-u_Time - 1000.f);
-    fbm_input_micro *= 7.f;
+    fbm_input_micro *= 10.f;
     float fbm_micro = fbm(fbm_input_micro.x, fbm_input_micro.y, fbm_input_micro.z, 0.5f, 7);
-    // weight += fbm_micro * 0.6f * weight * weight * weight;
 
-    // float fbm_micro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 6);
     float weight_final = 1.f;
     float angle_2 = acos(dot(normalize(vec3(tempPos)), vec3(0, 0, -1)));
     weight_final = weight * (angle_2) * fbm_macro + 0.25f;
     weight_final += (fbm_micro-0.5f) * 0.2f * pow(weight, 3.0);
-    
-    // if (angle_2 > 0.5f && angle_2 < 0.8f) {
-    //     weight += 0.2 * (1.0 - angle_2);
-    // }
+
     tempPos += weight_final * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-
-
-    //Mouth cavity
-    // //mouthCenter
-    // float mouthDist = length(vec3(tempPos) - vec3(mouthCenter));
-    // float mouthDistY = abs(tempPos.y - mouthCenter.y);
-    // if (mouthDist <= 0.3f && mouthDistY <= 0.10f) {
-    //     float mouthAngle = acos(dot(normalize(vec3(vs_Pos)), vec3(mouthCenter)));
-    //     // if (abs(mouthAngle) <= 0.1f) {
-    //          tempPos -= 0.5f * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-    //     // }
-    // }
-
-    // float weight_2 = 1.0 / (angle_2 + 0.95f);
-    // weight_2 = bias(weight_2, 0.9f);
-    // if (weight_2 > 0.5f) {
-    // tempPos -= weight_2 * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
-    // }
-    //Everything on the front half of the sphere, should go inwards by a little bit, proportionate to 
-
 
     fs_LightVec = lightPos - vec4(tempPos, 1.f);
 

@@ -88,7 +88,7 @@ float fade(float t) {
     return 6.0 * pow(t, 5.0) - 15.0 * pow(t, 4.0) + 10.0 * 10.0 *pow(t, 3.0);
 }
 
-vec3 mouthCenter = vec3(0.0, -0.3, -1.2);
+vec3 mouthCenter = vec3(0.0, -0.35, -1.2);
 
 void main()
 {
@@ -140,15 +140,18 @@ void main()
 
         vec3 mouthPoint = vec3(fs_Pos);
         float mouthAngle = acos(dot(normalize(vec3(fs_Pos) - vec3(mouthCenter)), normalize(vec3(0, 1, 0))));
+        
         vec3 dir = normalize(mouthPoint - mouthCenter);
-        mouthPoint += 0.15f * sin(mouthAngle * 2.6f + 0.01f * u_Time) * dir;
+        // mouthPoint += 0.55f * length(mouthPoint - mouthCenter) * sin(mouthAngle * 2.4f + 1.2f) * dir;
+        mouthPoint += 0.15f * sin(-mouthAngle * 2.2f + 1.2f) * dir;
+        // mouthPoint += 0.02f * cos(mouthAngle * 2.6f + 0.1f * u_Time) * dir;
 
         float mouthDist = length(vec3(mouthPoint) - vec3(mouthCenter));
         float mouthDistY = abs(mouthPoint.y - mouthCenter.y);
 
-        if (mouthDist <= 0.2f) {
-                    vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);
-                    ipol = mouth;
+        if (mouthDist <= 0.17f) {
+            vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);
+            ipol = mouth;
         }
         // if (mouthDist <= 0.3f && mouthDistY <= 0.10f) {
         //     // float mouthAngle = acos(dot(normalize(vec3(fs_Pos)), vec3(mouthCenter)));
