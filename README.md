@@ -1,3 +1,8 @@
+# Live Demo:
+
+Woooo!!! Live demo !!
+https://logancho.github.io/hw01-fireball-base/
+
 # Submission:
 
 Hi!! it's me again. I somehow managed to get hw00 gh-pages working after a lot of time digging through stack overflow, but now it doesn't work again... so no github live demo... yet. I hate this ;-;
