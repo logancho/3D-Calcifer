@@ -18,6 +18,7 @@ const controls = {
   R: 1.0,
   G: 0.0,
   B: 0.0,
+  FireRoughness: 0.0,
 };
 
 let icosphere: Icosphere;
@@ -33,17 +34,18 @@ let prevTesselations: number = 5;
 let prevR: number = 1;
 let prevG: number = 0.0;
 let prevB: number = 0.0;
+let prevFireRoughness: number = 0.0;
+
+
 let leftEyeCenter: vec3 = vec3.fromValues(0.74, 0.0, -1.2);
 let rightEyeCenter: vec3 = vec3.fromValues(-0.74, 0.0, -1.2);
 let mouthPos: vec3 = vec3.fromValues(0.0, -0.3, -1.2);
-
 
 //time:
 
 let time: number = 0.0;
 
 function loadScene() {
-  
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
   leftEye = new Icosphere(leftEyeCenter, 0.2, controls.tesselations);
@@ -83,6 +85,7 @@ function main() {
   gui.add(controls, 'R', 0.0, 1.0).step(0.01);
   gui.add(controls, 'G', 0.0, 1.0).step(0.01);
   gui.add(controls, 'B', 0.0, 1.0).step(0.01);
+  gui.add(controls, 'FireRoughness', 0.0, 1.0).step(0.01);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -97,7 +100,7 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0.0, 0.0, -10.0), vec3.fromValues(0.0, 0.0, 0.0));
+  const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
@@ -170,6 +173,9 @@ function main() {
     if(controls.B != prevB)
     {
       prevB = controls.B;
+    }
+    if (controls.FireRoughness != prevFireRoughness) {
+      prevFireRoughness = controls.FireRoughness;
     }
     //Add time input into this call!!!
     // gl.disable(gl.DEPTH_TEST);

@@ -29,7 +29,7 @@ class ShaderProgram {
   unifModelInvTr: WebGLUniformLocation;
   unifViewProj: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
-  //Camera Pos
+  //Custom
   unifCamPos: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
   //

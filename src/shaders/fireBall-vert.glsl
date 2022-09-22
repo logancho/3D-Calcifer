@@ -133,7 +133,6 @@ void main()
 
     float weight = (1.f / (angle + 0.45f));
     vec3 fbm_input = tempPos + (0.028f * vec3(-u_Time, -u_Time, u_Time));
-    // fbm_input *= weight;
     float fbm_macro = fbm(fbm_input.x, fbm_input.y, fbm_input.z, 0.5f, 1);
     fbm_macro = bias(fbm_macro, 0.7f);
 
@@ -143,7 +142,7 @@ void main()
 
     float weight_final = 1.f;
     float angle_2 = acos(dot(normalize(vec3(tempPos)), vec3(0, 0, -1)));
-    weight_final = weight * (angle_2) * fbm_macro + 0.25f;
+    weight_final = pow(weight, 1.0) * (angle_2) * fbm_macro + 0.25f;
     weight_final += (fbm_micro-0.5f) * 0.2f * pow(weight, 3.0);
 
     tempPos += weight_final * vec3(normalize(vec4(invTranspose * vec3(vs_Nor), 0)));
