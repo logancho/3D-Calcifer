@@ -12,6 +12,10 @@ The moment I saw the title of this hw on canvas, I already knew I wanted to do s
 
 I also didn't want his eyes to be bulging out in free space, and so I tried to flatten the front of his body in a similar way through using the angle between points and the negative z-axis. 
 
+The mouth went through a lot of trial and error, but eventually, I decided I would simply have the mouth drawn on in the fireball fragment shader (that is, the shader I use for Calcifer's red/yellow body colors.) In this shader, I interpolate between two colors, yellow and red, with an in-out easing function, and in order to give the illusion of Calcifer being a real glowing flame, I incorporate the camera's position such that the middle of Calcifer is always yellow, and his edges are red, no matter what direction you look at him in!
+
+This whole project brought my understanding of FBM, noise, seeing sinusoidal patterns in fire?? and etc. to a new level, and I'm sad I couldn't end up with more time to spend on improving him, but for tonight's deadline, I think he'll be alright : D.
+
 
 # [Project 1: Noise](https://github.com/CIS-566-Fall-2022/hw01-fireball-base)
 
