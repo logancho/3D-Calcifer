@@ -1,6 +1,6 @@
 # Submission:
 
-Hi guys, it's me again. I somehow managed to get hw00 gh-pages working after a lot of time digging through stack overflow, but now it doesn't work again... so no github live demo... yet. I hate this ;-;
+Hi!! it's me again. I somehow managed to get hw00 gh-pages working after a lot of time digging through stack overflow, but now it doesn't work again... so no github live demo... yet. I hate this ;-;
 
 That said, this project was sooo fun, and I'll probably be spending my weekend/who knows how long afterwards improving on it just because there's so many different things I want to do, but just didnt have enough time to implement. 
 
