@@ -1,4 +1,4 @@
-# Live Demo:
+# super cool update- 09/22 - Live Demo:
 
 Woooo!!! Live demo !!
 https://logancho.github.io/hw01-fireball-base/
