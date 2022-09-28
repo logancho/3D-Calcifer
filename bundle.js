@@ -9963,9 +9963,18 @@ class Square extends _rendering_gl_Drawable__WEBPACK_IMPORTED_MODULE_0__["defaul
             1, -1, 0, 1,
             1, 1, 0, 1,
             -1, 1, 0, 1]);
+        this.uvs = new Float32Array([0, 0, 0, 0,
+            1, 0, 0, 0,
+            1, 1, 0, 0,
+            0, 1, 0, 0]);
+        // this.uvs = new Float32Array([1, 0, 0, 0,
+        //   1, 0, 1, 0,
+        //   1, 1, 0, 0,
+        //   0, 1, 0, 0]);
         this.generateIdx();
         this.generatePos();
         this.generateNor();
+        this.generateUVs();
         this.count = this.indices.length;
         _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bindBuffer(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
         _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bufferData(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ELEMENT_ARRAY_BUFFER, this.indices, _globals__WEBPACK_IMPORTED_MODULE_1__.gl.STATIC_DRAW);
@@ -9973,6 +9982,8 @@ class Square extends _rendering_gl_Drawable__WEBPACK_IMPORTED_MODULE_0__["defaul
         _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bufferData(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ARRAY_BUFFER, this.normals, _globals__WEBPACK_IMPORTED_MODULE_1__.gl.STATIC_DRAW);
         _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bindBuffer(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ARRAY_BUFFER, this.bufPos);
         _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bufferData(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ARRAY_BUFFER, this.positions, _globals__WEBPACK_IMPORTED_MODULE_1__.gl.STATIC_DRAW);
+        _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bindBuffer(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ARRAY_BUFFER, this.bufUV);
+        _globals__WEBPACK_IMPORTED_MODULE_1__.gl.bufferData(_globals__WEBPACK_IMPORTED_MODULE_1__.gl.ARRAY_BUFFER, this.uvs, _globals__WEBPACK_IMPORTED_MODULE_1__.gl.STATIC_DRAW);
         console.log(`Created square`);
     }
 }
@@ -10021,6 +10032,7 @@ class Drawable {
         this.idxBound = false;
         this.posBound = false;
         this.norBound = false;
+        this.uvBound = false;
     }
     destory() {
         _globals__WEBPACK_IMPORTED_MODULE_0__.gl.deleteBuffer(this.bufIdx);
@@ -10039,6 +10051,10 @@ class Drawable {
         this.norBound = true;
         this.bufNor = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.createBuffer();
     }
+    generateUVs() {
+        this.uvBound = true;
+        this.bufUV = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.createBuffer();
+    }
     bindIdx() {
         if (this.idxBound) {
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.bindBuffer(_globals__WEBPACK_IMPORTED_MODULE_0__.gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
@@ -10056,6 +10072,12 @@ class Drawable {
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.bindBuffer(_globals__WEBPACK_IMPORTED_MODULE_0__.gl.ARRAY_BUFFER, this.bufNor);
         }
         return this.norBound;
+    }
+    bindUV() {
+        if (this.uvBound) {
+            _globals__WEBPACK_IMPORTED_MODULE_0__.gl.bindBuffer(_globals__WEBPACK_IMPORTED_MODULE_0__.gl.ARRAY_BUFFER, this.bufUV);
+        }
+        return this.uvBound;
     }
     elemCount() {
         return this.count;
@@ -10175,10 +10197,12 @@ class ShaderProgram {
         this.attrPos = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getAttribLocation(this.prog, "vs_Pos");
         this.attrNor = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getAttribLocation(this.prog, "vs_Nor");
         this.attrCol = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getAttribLocation(this.prog, "vs_Col");
+        this.attrUV = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getAttribLocation(this.prog, "vs_UV");
         this.unifModel = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_Model");
         this.unifModelInvTr = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_ModelInvTr");
         this.unifViewProj = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_ViewProj");
         this.unifColor = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_Color");
+        this.unifSampler2D = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_Texture");
         this.unifCamPos = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_CamPos");
         this.unifTime = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_Time");
         this.unifRoughness = _globals__WEBPACK_IMPORTED_MODULE_0__.gl.getUniformLocation(this.prog, "u_Rough");
@@ -10212,6 +10236,12 @@ class ShaderProgram {
         this.use();
         if (this.unifColor !== -1) {
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.uniform4fv(this.unifColor, color);
+        }
+    }
+    setTextureSampler(texSlot) {
+        this.use();
+        if (this.unifSampler2D !== -1) {
+            _globals__WEBPACK_IMPORTED_MODULE_0__.gl.uniform1i(this.unifSampler2D, texSlot);
         }
     }
     setCamPos(cp) {
@@ -10248,12 +10278,21 @@ class ShaderProgram {
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.enableVertexAttribArray(this.attrNor);
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.vertexAttribPointer(this.attrNor, 4, _globals__WEBPACK_IMPORTED_MODULE_0__.gl.FLOAT, false, 0, 0);
         }
+        if (this.attrUV != -1 && d.bindUV()) {
+            _globals__WEBPACK_IMPORTED_MODULE_0__.gl.enableVertexAttribArray(this.attrUV);
+            _globals__WEBPACK_IMPORTED_MODULE_0__.gl.vertexAttribPointer(this.attrUV, 4, _globals__WEBPACK_IMPORTED_MODULE_0__.gl.FLOAT, false, 0, 0);
+        }
+        if (this.unifSampler2D != -1) {
+            _globals__WEBPACK_IMPORTED_MODULE_0__.gl.uniform1i(this.unifSampler2D, 0); // set back to 0
+        }
         d.bindIdx();
         _globals__WEBPACK_IMPORTED_MODULE_0__.gl.drawElements(d.drawMode(), d.elemCount(), _globals__WEBPACK_IMPORTED_MODULE_0__.gl.UNSIGNED_INT, 0);
         if (this.attrPos != -1)
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.disableVertexAttribArray(this.attrPos);
         if (this.attrNor != -1)
             _globals__WEBPACK_IMPORTED_MODULE_0__.gl.disableVertexAttribArray(this.attrNor);
+        if (this.attrUV != -1)
+            _globals__WEBPACK_IMPORTED_MODULE_0__.gl.disableVertexAttribArray(this.attrUV);
     }
 }
 ;
@@ -10860,7 +10899,7 @@ module.exports = "#version 300 es\n\n// This is a fragment shader. If you've ope
   \****************************************/
 /***/ ((module) => {
 
-module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform float u_Time;\nuniform vec4 u_CamPos;\nuniform float u_Happy;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\nin vec4 fs_Pos;\n\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nint N_OCTAVES = 1;\n#define PI 3.1415926538\n\nfloat hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }\n\nfloat noise_gen2(float x, float y, float z, float w) {\n    return fract(sin(dot(vec4(x, y, z, w), vec4(1.9898, 7.233, 4.984, 100.2974))) * 437.54531);\n}\n\nfloat noise_gen3(float x, float y, float z) {\n    return fract(sin(dot(vec3(x, y, z), vec3(0, 1, 0))) * 4337.54531);\n}\n\nfloat fbm_test(float x, float y, float z) {\n    float total = 0.f;\n    float frequency = 1.f;\n    float amplitude = 1.f;\n    float maxValue = 0.f;  // Used for normalizing result to 0.0 - 1.0\n    float persistence = 0.5f;\n    for(int i = 0; i < N_OCTAVES; i++) {\n        total += noise_gen3(x * frequency, y * frequency, z * frequency) * amplitude;\n        maxValue += amplitude;\n        amplitude *= persistence;\n        frequency *= 2.f;\n    }\n    return total/maxValue;\n}\n\nfloat fbm(float x, float y, float z) {\n    float total = 0.f;\n    float persistence = 1.f / 2.f;\n    float amplitude = 1.f;\n    float frequency = 1.f;\n    for (int i = 0; i < N_OCTAVES; ++i) {\n        frequency *= 2.f;\n        amplitude *= persistence;\n        total += amplitude * noise_gen2(x, y, z, frequency);\n    }\n    return total;\n}\n\nfloat bias(float t, float b) {\n    return (t / ((((1.0/b) - 2.0)*(1.0 - t))+1.0));\n}\n\nfloat easeInOutExpo(float x) {\nreturn x == 0.0\n  ? 0.0\n  : x == 1.0\n  ? 1.0\n  : x < 0.5 ? pow(2.0, 20.0 * x - 10.0) / 2.0\n  : (2.0 - pow(2.0, -20.0 * x + 10.0)) / 2.0;\n}\n\nfloat easeInOutCubic(float x) {\n    return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;\n}\n\nfloat fade(float t) {\n    return 6.0 * pow(t, 5.0) - 15.0 * pow(t, 4.0) + 10.0 * 10.0 *pow(t, 3.0);\n}\n\nvec3 mouthCenter = vec3(0.0, -0.35, -1.2);\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.6;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n        // vec3 i = 0.001f * vec3(fs_Pos) + 0.000001f * vec3(u_Time);\n        // float fbm_2 = bias(fbm_test(i.x, i.y, i.z), 0.45f);\n        // vec3 i = 0.000006f * vec3(fs_Pos) + 0.00000009f * vec3(u_Time);\n        // float fbm_2 = bias(fbm_test(i.x, i.y, i.z), 0.45f);\n\n\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);\n        // out_Col = vec4(vec3(diffuseColor), 1.0f);\n        // out_Col = vec4(lightIntensity * vec3(mix(vec4(diffuseColor), vec4(vec3(1.f) - vec3(diffuseColor), 1.f), fbm_2)), 1.f);\n\n        // if (abs(dot(vec3(fs_Nor), vec3(0, 1, 0))) > 0.5f) {\n        // out_Col = vec4(247.f / 255.f, 191.f / 255.f, 65.f / 255.f, 1.f);\n        // out_Col = vec4( mix(vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f), vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f), length(vec3(fs_Pos))));\n        vec3 yellow = vec3(250.f / 255.f, 188.f / 255.f, 70.f / 255.f);\n        vec3 red = vec3(200.f / 255.f, 74.f / 255.f, 50.f / 255.f);\n\n        float dist = length(fs_Pos);\n        dist = 1.f;\n        // vec3 comparison = normalize(vec3(0) - vec3(0, 0, 1));\n        // dist = acos(dot(normalize(vec3(fs_Nor)), vec3(0, 0, 1))))));\n        dist = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos))));\n        dist /= (2.0*PI);\n        dist = fade(dist);\n        dist = easeInOutCubic(dist + 0.09f * sin(0.12f * u_Time) + 0.2f);\n        vec3 ipol = mix(yellow, red, dist);\n\n        // if (dist < 0.6f) {\n        //     ipol = yellow;\n        // }\n\n\n        vec3 mouthPoint = vec3(fs_Pos);\n        float mouthAngle = acos(dot(normalize(vec3(fs_Pos) - vec3(mouthCenter)), normalize(vec3(0, 1, 0))));\n        \n        vec3 dir = normalize(mouthPoint - mouthCenter);\n        // mouthPoint += 0.55f * length(mouthPoint - mouthCenter) * sin(mouthAngle * 2.4f + 1.2f) * dir;\n        mouthPoint += 0.15f * sin(u_Happy * -mouthAngle * 2.2f + 1.2f) * dir;\n        // mouthPoint += 0.02f * cos(mouthAngle * 2.6f + 0.1f * u_Time) * dir;\n\n        float mouthDist = length(vec3(mouthPoint) - vec3(mouthCenter));\n        float mouthDistY = abs(mouthPoint.y - mouthCenter.y);\n\n        if (mouthDist <= 0.17f) {\n            vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);\n            ipol = mouth;\n        }\n        if (mouthDist >= 0.17f && mouthDist <= 0.192f) {\n            float t = (mouthDist - 0.17f) / 0.022f;\n            vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);\n            ipol = mix(mouth, ipol, t);\n            // ipol = mouth;\n        }\n        // if (mouthDist <= 0.3f && mouthDistY <= 0.10f) {\n        //     // float mouthAngle = acos(dot(normalize(vec3(fs_Pos)), vec3(mouthCenter)));\n        // }\n        out_Col = vec4(ipol, 1.0f);\n        // out\n        // out_Col = vec4(vec3(normalize(red)), 1.f);\n        // out_Col = vec4(vec3(u_Color), 1.f);\n        // out_Col = vec4(vec3(normalize(u_CamPos)), 1.f);\n}\n"
+module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform float u_Time;\nuniform vec4 u_CamPos;\nuniform float u_Happy;\nuniform sampler2D u_Texture;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\nin vec4 fs_Pos;\n\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nint N_OCTAVES = 1;\n#define PI 3.1415926538\n\nfloat hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }\n\nfloat noise_gen2(float x, float y, float z, float w) {\n    return fract(sin(dot(vec4(x, y, z, w), vec4(1.9898, 7.233, 4.984, 100.2974))) * 437.54531);\n}\n\nfloat noise_gen3(float x, float y, float z) {\n    return fract(sin(dot(vec3(x, y, z), vec3(0, 1, 0))) * 4337.54531);\n}\n\nfloat fbm_test(float x, float y, float z) {\n    float total = 0.f;\n    float frequency = 1.f;\n    float amplitude = 1.f;\n    float maxValue = 0.f;  // Used for normalizing result to 0.0 - 1.0\n    float persistence = 0.5f;\n    for(int i = 0; i < N_OCTAVES; i++) {\n        total += noise_gen3(x * frequency, y * frequency, z * frequency) * amplitude;\n        maxValue += amplitude;\n        amplitude *= persistence;\n        frequency *= 2.f;\n    }\n    return total/maxValue;\n}\n\nfloat fbm(float x, float y, float z) {\n    float total = 0.f;\n    float persistence = 1.f / 2.f;\n    float amplitude = 1.f;\n    float frequency = 1.f;\n    for (int i = 0; i < N_OCTAVES; ++i) {\n        frequency *= 2.f;\n        amplitude *= persistence;\n        total += amplitude * noise_gen2(x, y, z, frequency);\n    }\n    return total;\n}\n\nfloat bias(float t, float b) {\n    return (t / ((((1.0/b) - 2.0)*(1.0 - t))+1.0));\n}\n\nfloat easeInOutExpo(float x) {\nreturn x == 0.0\n  ? 0.0\n  : x == 1.0\n  ? 1.0\n  : x < 0.5 ? pow(2.0, 20.0 * x - 10.0) / 2.0\n  : (2.0 - pow(2.0, -20.0 * x + 10.0)) / 2.0;\n}\n\nfloat easeInOutCubic(float x) {\n    return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;\n}\n\nfloat fade(float t) {\n    return 6.0 * pow(t, 5.0) - 15.0 * pow(t, 4.0) + 10.0 * 10.0 *pow(t, 3.0);\n}\n\nvec3 mouthCenter = vec3(0.0, -0.35, -1.2);\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.6;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n\n        vec3 yellow = vec3(250.f / 255.f, 188.f / 255.f, 70.f / 255.f);\n        vec3 red = vec3(200.f / 255.f, 74.f / 255.f, 50.f / 255.f);\n\n        float dist = length(fs_Pos);\n        dist = 1.f;\n\n        dist = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos))));\n        dist /= (2.0*PI);\n        dist = fade(dist);\n        dist = easeInOutCubic(dist + 0.09f * sin(0.12f * u_Time) + 0.2f);\n        vec3 ipol = mix(yellow, red, dist);\n\n        vec3 mouthPoint = vec3(fs_Pos);\n        float mouthAngle = acos(dot(normalize(vec3(fs_Pos) - vec3(mouthCenter)), normalize(vec3(0, 1, 0))));\n        \n        vec3 dir = normalize(mouthPoint - mouthCenter);\n\n        mouthPoint += 0.15f * sin(u_Happy * -mouthAngle * 2.2f + 1.2f) * dir;\n\n        float mouthDist = length(vec3(mouthPoint) - vec3(mouthCenter));\n        float mouthDistY = abs(mouthPoint.y - mouthCenter.y);\n\n        if (mouthDist <= 0.17f) {\n            vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);\n            ipol = mouth;\n        }\n        if (mouthDist >= 0.17f && mouthDist <= 0.192f) {\n            float t = (mouthDist - 0.17f) / 0.022f;\n            vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);\n            ipol = mix(mouth, ipol, t);\n        }\n\n        out_Col = vec4(ipol, 1.0f);\n}\n"
 
 /***/ }),
 
@@ -10930,7 +10969,7 @@ module.exports = "#version 300 es\n\n//This is a vertex shader. While it is call
   \***************************************/
 /***/ ((module) => {
 
-module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);\n        out_Col = vec4(diffuseColor.rgb, 0.1f);\n}\n"
+module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform sampler2D u_Texture;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);\n        out_Col = vec4(diffuseColor.rgb, 0.1f);\n}\n"
 
 /***/ }),
 
@@ -10940,7 +10979,27 @@ module.exports = "#version 300 es\n\n// This is a fragment shader. If you've ope
   \***************************************/
 /***/ ((module) => {
 
-module.exports = "#version 300 es\n\n//This is a vertex shader. While it is called a \"shader\" due to outdated conventions, this file\n//is used to apply matrix transformations to the arrays of vertex data passed to it.\n//Since this code is run on your GPU, each vertex is transformed simultaneously.\n//If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.\n//This simultaneous transformation allows your program to run much faster, especially when rendering\n//geometry with millions of vertices.\n\nuniform mat4 u_Model;       // The matrix that defines the transformation of the\n                            // object we're rendering. In this assignment,\n                            // this will be the result of traversing your scene graph.\n\nuniform mat4 u_ModelInvTr;  // The inverse transpose of the model matrix.\n                            // This allows us to transform the object's normals properly\n                            // if the object has been non-uniformly scaled.\n\nuniform mat4 u_ViewProj;    // The matrix that defines the camera's transformation.\n                            // We've written a static matrix for you to use for HW2,\n                            // but in HW3 you'll have to generate one yourself\n\nuniform vec4 u_CamPos;\n\nuniform float u_Time;\n\nin vec4 vs_Pos;             // The array of vertex positions passed to the shader\n\nin vec4 vs_Nor;             // The array of vertex normals passed to the shader\n\nin vec4 vs_Col;             // The array of vertex colors passed to the shader.\n\nout vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.\nout vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Pos;\n\nconst vec4 lightPos = vec4(5, 5, 5, 1); //The position of our virtual light, which is used to compute the shading of\n                                        //the geometry in the fragment shader.\n\nvoid main()\n{\n    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation\n\n    mat3 invTranspose = mat3(u_ModelInvTr);\n    fs_Nor = normalize(vec4(invTranspose * vec3(vs_Nor), 0));\n\n    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below\n\n    vec3 tempPos = vec3(modelposition);\n\n\n    fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies\n    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is\n                                             // used to render the final positions of the geometry's vertices\n\n    fs_Pos = modelposition;\n}\n"
+module.exports = "#version 300 es\n\n//This is a vertex shader. While it is called a \"shader\" due to outdated conventions, this file\n//is used to apply matrix transformations to the arrays of vertex data passed to it.\n//Since this code is run on your GPU, each vertex is transformed simultaneously.\n//If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.\n//This simultaneous transformation allows your program to run much faster, especially when rendering\n//geometry with millions of vertices.\n\nuniform mat4 u_Model;       // The matrix that defines the transformation of the\n                            // object we're rendering. In this assignment,\n                            // this will be the result of traversing your scene graph.\n\nuniform mat4 u_ModelInvTr;  // The inverse transpose of the model matrix.\n                            // This allows us to transform the object's normals properly\n                            // if the object has been non-uniformly scaled.\n\nuniform mat4 u_ViewProj;    // The matrix that defines the camera's transformation.\n                            // We've written a static matrix for you to use for HW2,\n                            // but in HW3 you'll have to generate one yourself\n\nuniform vec4 u_CamPos;\n\nuniform float u_Time;\n\nin vec4 vs_Pos;             // The array of vertex positions passed to the shader\n\nin vec4 vs_Nor;             // The array of vertex normals passed to the shader\n\nin vec4 vs_Col;             // The array of vertex colors passed to the shader.\n\nin vec4 vs_UV; //UV coordinates\n\nout vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.\nout vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Pos;\nout vec4 fs_UV;\n\nconst vec4 lightPos = vec4(5, 5, 5, 1); //The position of our virtual light, which is used to compute the shading of\n                                        //the geometry in the fragment shader.\n\nvoid main()\n{\n    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation\n\n    mat3 invTranspose = mat3(u_ModelInvTr);\n    fs_Nor = normalize(vec4(invTranspose * vec3(vs_Nor), 0));\n\n    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below\n\n    vec3 tempPos = vec3(modelposition);\n\n\n    fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies\n    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is\n                                             // used to render the final positions of the geometry's vertices\n\n    fs_Pos = modelposition;\n    // fs_UV = vec4(vs_UV);\n}\n"
+
+/***/ }),
+
+/***/ "./src/shaders/textureShader-frag.glsl":
+/*!*********************************************!*\
+  !*** ./src/shaders/textureShader-frag.glsl ***!
+  \*********************************************/
+/***/ ((module) => {
+
+module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform sampler2D u_Texture;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\nin vec4 fs_UV;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);\n        // out_Col = vec4(diffuseColor.rgb, 0.1f);\n        // vec2(fs_UV);\n        // texture2D(u_Texture, vec2(fs_UV));\n        out_Col = texture(u_Texture, vec2(fs_UV.x, fs_UV.y)) + vec4(0.1, 0.1, 0.1, 1.0);\n        // out_Col = texture(u_Texture, vec2(fs_UV));\n        // out_Col = vec4(vec3(fs_UV), 1.f);\n}\n"
+
+/***/ }),
+
+/***/ "./src/shaders/textureShader-vert.glsl":
+/*!*********************************************!*\
+  !*** ./src/shaders/textureShader-vert.glsl ***!
+  \*********************************************/
+/***/ ((module) => {
+
+module.exports = "#version 300 es\n\n//This is a vertex shader. While it is called a \"shader\" due to outdated conventions, this file\n//is used to apply matrix transformations to the arrays of vertex data passed to it.\n//Since this code is run on your GPU, each vertex is transformed simultaneously.\n//If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.\n//This simultaneous transformation allows your program to run much faster, especially when rendering\n//geometry with millions of vertices.\n\nuniform mat4 u_Model;       // The matrix that defines the transformation of the\n                            // object we're rendering. In this assignment,\n                            // this will be the result of traversing your scene graph.\n\nuniform mat4 u_ModelInvTr;  // The inverse transpose of the model matrix.\n                            // This allows us to transform the object's normals properly\n                            // if the object has been non-uniformly scaled.\n\nuniform mat4 u_ViewProj;    // The matrix that defines the camera's transformation.\n                            // We've written a static matrix for you to use for HW2,\n                            // but in HW3 you'll have to generate one yourself\n\nuniform vec4 u_CamPos;\n\nuniform float u_Time;\n\nin vec4 vs_Pos;             // The array of vertex positions passed to the shader\n\nin vec4 vs_Nor;             // The array of vertex normals passed to the shader\n\nin vec4 vs_Col;             // The array of vertex colors passed to the shader.\n\nin vec4 vs_UV; //UV coordinates\n\nout vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.\nout vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Pos;\nout vec4 fs_UV;\n\nconst vec4 lightPos = vec4(5, 5, 5, 1); //The position of our virtual light, which is used to compute the shading of\n                                        //the geometry in the fragment shader.\n\nvoid main()\n{\n    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation\n\n    mat3 invTranspose = mat3(u_ModelInvTr);\n    fs_Nor = normalize(vec4(invTranspose * vec3(vs_Nor), 0));\n\n    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below\n\n    vec3 tempPos = vec3(modelposition);\n\n\n    fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies\n    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is\n                                             // used to render the final positions of the geometry's vertices\n\n    fs_Pos = modelposition;\n    fs_UV = vec4(vs_UV);\n}\n"
 
 /***/ })
 
@@ -11040,6 +11099,7 @@ const Stats = __webpack_require__(/*! stats-js */ "./node_modules/stats-js/build
 
 
 
+
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
@@ -11094,6 +11154,28 @@ function loadScene() {
 }
 //Update the existing GUI in main.ts with:
 //    a parameter to alter the color passed to u_Color in the Lambert shader. 
+function loadTexture(url) {
+    const texture = _globals__WEBPACK_IMPORTED_MODULE_6__.gl.createTexture();
+    const image = new Image();
+    // alert('bruh');
+    image.onload = e => {
+        _globals__WEBPACK_IMPORTED_MODULE_6__.gl.bindTexture(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, texture);
+        _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texParameteri(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_MAG_FILTER, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.NEAREST);
+        _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texParameteri(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_MIN_FILTER, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.NEAREST);
+        _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texParameteri(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_WRAP_S, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.CLAMP_TO_EDGE);
+        _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texParameteri(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_WRAP_T, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.CLAMP_TO_EDGE);
+        _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texImage2D(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, 0, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.RGBA, image.width, image.height, 0, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.RGBA, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.UNSIGNED_BYTE, image);
+        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    };
+    image.src = 'src/bruh.png';
+    return texture;
+}
+// function loadTexture2(image: HTMLImageElement, i: WebGLTexture) {
+//   alert('bruh');
+//   gl.bindTexture(gl.TEXTURE_2D, i);
+//   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+//   gl.generateMipmap(gl.TEXTURE_2D);
+// }
 function main() {
     // Initial display for framerate
     const stats = Stats();
@@ -11156,13 +11238,28 @@ function main() {
         // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
         new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.FRAGMENT_SHADER, __webpack_require__(/*! ./shaders/fireBallMouth-frag.glsl */ "./src/shaders/fireBallMouth-frag.glsl")),
     ]);
+    const textureTest = new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__["default"]([
+        new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.VERTEX_SHADER, __webpack_require__(/*! ./shaders/textureShader-vert.glsl */ "./src/shaders/textureShader-vert.glsl")),
+        // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+        new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.FRAGMENT_SHADER, __webpack_require__(/*! ./shaders/textureShader-frag.glsl */ "./src/shaders/textureShader-frag.glsl")),
+    ]);
+    //Initialize Texture
+    // ---- load texture
+    // const texture1 = new Texture();
+    const textur = loadTexture('./ExampleTexture.jpg');
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, textur);
+    // const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
+    // var texture_1 = new Texture();
+    // texture_1.initializeTexture('./bruh.png');
+    // texture_1.load();
+    // texture_1.bind(0);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    textureTest.setTextureSampler(0);
     // This function will be called every frame
     function tick() {
-        gl.disable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
         time++;
         camera.update();
-        console.log("bruh");
         stats.begin();
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         renderer.clear();
@@ -11186,48 +11283,53 @@ function main() {
         }
         //Add time input into this call!!!
         // gl.disable(gl.DEPTH_TEST);
+        //refresh texture:
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, textur);
+        textureTest.setTextureSampler(0);
         let id = gl_matrix__WEBPACK_IMPORTED_MODULE_9__.create();
         gl_matrix__WEBPACK_IMPORTED_MODULE_9__.identity(id);
-        renderer.render(camera, fireBall, [
-            icosphere,
+        renderer.render(camera, textureTest, [
+            // icosphere,
             // leftEye,
-            // square,
+            square,
             // cube,
         ], 
         // vec3.fromValues(controls.R, controls.G, controls.B),
         // camera.position,
         time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]);
-        renderer.render(camera, fireBallEye, [
-            // icosphere,
-            leftEye,
-            rightEye,
-            // square,
-            // square,
-            // cube,
-        ], 
-        // vec3.fromValues(controls.R, controls.G, controls.B),
-        time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]);
-        renderer.render(camera, fireBallIris, [
-            // icosphere,
-            leftIris,
-            rightIris,
-            // square,
-            // square,
-            // cube,
-        ], 
-        // vec3.fromValues(controls.R, controls.G, controls.B),
-        time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]);
-        let mouthScale = gl_matrix__WEBPACK_IMPORTED_MODULE_9__.create();
-        gl_matrix__WEBPACK_IMPORTED_MODULE_9__.fromScaling(mouthScale, gl_matrix__WEBPACK_IMPORTED_MODULE_8__.fromValues(2.0, 0.8, 1.2));
-        let mouthTrans = gl_matrix__WEBPACK_IMPORTED_MODULE_9__.create();
-        gl_matrix__WEBPACK_IMPORTED_MODULE_9__.fromTranslation(mouthTrans, mouthPos);
-        gl_matrix__WEBPACK_IMPORTED_MODULE_9__.invert(mouthTrans, mouthTrans);
-        // mat4.identity(mouthTrans);
-        let mouthModel = gl_matrix__WEBPACK_IMPORTED_MODULE_9__.create();
-        // mat4.identity(mouthModel);
-        gl_matrix__WEBPACK_IMPORTED_MODULE_9__.multiply(mouthModel, mouthScale, mouthTrans);
-        gl_matrix__WEBPACK_IMPORTED_MODULE_9__.invert(mouthTrans, mouthTrans);
-        gl_matrix__WEBPACK_IMPORTED_MODULE_9__.multiply(mouthModel, mouthTrans, mouthModel);
+        // renderer.render(camera, fireBallEye, [
+        //   // icosphere,
+        //   leftEye,
+        //   rightEye,
+        //   // square,
+        //   // square,
+        //   // cube,
+        //   ],
+        //   // vec3.fromValues(controls.R, controls.G, controls.B),
+        //   time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
+        // );
+        // renderer.render(camera, fireBallIris, [
+        //   // icosphere,
+        //   leftIris,
+        //   rightIris,
+        //   // square,
+        //   // square,
+        //   // cube,
+        //   ],
+        //   // vec3.fromValues(controls.R, controls.G, controls.B),
+        //   time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
+        // );
+        //Transformations for 3D mouth (redacted):
+        // let mouthScale: mat4 = mat4.create();
+        // mat4.fromScaling(mouthScale, vec3.fromValues(2.0, 0.8, 1.2));
+        // let mouthTrans: mat4 = mat4.create();
+        // mat4.fromTranslation(mouthTrans, mouthPos);
+        // mat4.invert(mouthTrans, mouthTrans);
+        // let mouthModel: mat4 = mat4.create();
+        // mat4.multiply(mouthModel, mouthScale, mouthTrans);
+        // mat4.invert(mouthTrans, mouthTrans);
+        // mat4.multiply(mouthModel, mouthTrans, mouthModel);
         // renderer.render(camera, fireBallMouth, [
         //   // icosphere,
         //   mouth,
