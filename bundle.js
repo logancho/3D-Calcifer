@@ -9554,7 +9554,7 @@ class Camera {
         this.controls.tick();
         gl_matrix__WEBPACK_IMPORTED_MODULE_1__.add(this.target, this.position, this.direction);
         gl_matrix__WEBPACK_IMPORTED_MODULE_0__.lookAt(this.viewMatrix, this.controls.eye, this.controls.center, this.controls.up);
-        console.log(this.target);
+        // console.log(this.target);
     }
 }
 ;
@@ -10989,7 +10989,7 @@ module.exports = "#version 300 es\n\n//This is a vertex shader. While it is call
   \*********************************************/
 /***/ ((module) => {
 
-module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform sampler2D u_Texture;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\nin vec4 fs_UV;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);\n        // out_Col = vec4(diffuseColor.rgb, 0.1f);\n        // vec2(fs_UV);\n        // texture2D(u_Texture, vec2(fs_UV));\n        out_Col = texture(u_Texture, vec2(fs_UV.x, fs_UV.y)) + vec4(0.1, 0.1, 0.1, 1.0);\n        // out_Col = texture(u_Texture, vec2(fs_UV));\n        // out_Col = vec4(vec3(fs_UV), 1.f);\n}\n"
+module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform sampler2D u_Texture;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\nin vec4 fs_UV;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);\n        // out_Col = vec4(diffuseColor.rgb, 0.1f);\n        // vec2(fs_UV);\n        // texture2D(u_Texture, vec2(fs_UV));\n        out_Col = texture(u_Texture, vec2(fs_UV.x, fs_UV.y));\n        // out_Col = texture(u_Texture, vec2(fs_UV));\n        // out_Col = vec4(vec3(fs_UV), 1.f);\n}\n"
 
 /***/ }),
 
@@ -11155,10 +11155,12 @@ function loadScene() {
 //Update the existing GUI in main.ts with:
 //    a parameter to alter the color passed to u_Color in the Lambert shader. 
 function loadTexture(url) {
+    console.log('loadtexture called');
     const texture = _globals__WEBPACK_IMPORTED_MODULE_6__.gl.createTexture();
     const image = new Image();
-    // alert('bruh');
     image.onload = e => {
+        console.log('Image onload called');
+        alert('Onload');
         _globals__WEBPACK_IMPORTED_MODULE_6__.gl.bindTexture(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, texture);
         _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texParameteri(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_MAG_FILTER, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.NEAREST);
         _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texParameteri(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_MIN_FILTER, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.NEAREST);
@@ -11167,7 +11169,7 @@ function loadTexture(url) {
         _globals__WEBPACK_IMPORTED_MODULE_6__.gl.texImage2D(_globals__WEBPACK_IMPORTED_MODULE_6__.gl.TEXTURE_2D, 0, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.RGBA, image.width, image.height, 0, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.RGBA, _globals__WEBPACK_IMPORTED_MODULE_6__.gl.UNSIGNED_BYTE, image);
         // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     };
-    image.src = 'src/bruh.png';
+    image.src = './screenshot.png';
     return texture;
 }
 // function loadTexture2(image: HTMLImageElement, i: WebGLTexture) {
