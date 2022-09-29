@@ -10981,26 +10981,6 @@ module.exports = "#version 300 es\n\n// This is a fragment shader. If you've ope
 
 module.exports = "#version 300 es\n\n//This is a vertex shader. While it is called a \"shader\" due to outdated conventions, this file\n//is used to apply matrix transformations to the arrays of vertex data passed to it.\n//Since this code is run on your GPU, each vertex is transformed simultaneously.\n//If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.\n//This simultaneous transformation allows your program to run much faster, especially when rendering\n//geometry with millions of vertices.\n\nuniform mat4 u_Model;       // The matrix that defines the transformation of the\n                            // object we're rendering. In this assignment,\n                            // this will be the result of traversing your scene graph.\n\nuniform mat4 u_ModelInvTr;  // The inverse transpose of the model matrix.\n                            // This allows us to transform the object's normals properly\n                            // if the object has been non-uniformly scaled.\n\nuniform mat4 u_ViewProj;    // The matrix that defines the camera's transformation.\n                            // We've written a static matrix for you to use for HW2,\n                            // but in HW3 you'll have to generate one yourself\n\nuniform vec4 u_CamPos;\n\nuniform float u_Time;\n\nin vec4 vs_Pos;             // The array of vertex positions passed to the shader\n\nin vec4 vs_Nor;             // The array of vertex normals passed to the shader\n\nin vec4 vs_Col;             // The array of vertex colors passed to the shader.\n\nin vec4 vs_UV; //UV coordinates\n\nout vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.\nout vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Pos;\nout vec4 fs_UV;\n\nconst vec4 lightPos = vec4(5, 5, 5, 1); //The position of our virtual light, which is used to compute the shading of\n                                        //the geometry in the fragment shader.\n\nvoid main()\n{\n    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation\n\n    mat3 invTranspose = mat3(u_ModelInvTr);\n    fs_Nor = normalize(vec4(invTranspose * vec3(vs_Nor), 0));\n\n    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below\n\n    vec3 tempPos = vec3(modelposition);\n\n\n    fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies\n    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is\n                                             // used to render the final positions of the geometry's vertices\n\n    fs_Pos = modelposition;\n    // fs_UV = vec4(vs_UV);\n}\n"
 
-/***/ }),
-
-/***/ "./src/shaders/textureShader-frag.glsl":
-/*!*********************************************!*\
-  !*** ./src/shaders/textureShader-frag.glsl ***!
-  \*********************************************/
-/***/ ((module) => {
-
-module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\nuniform sampler2D u_Texture;\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\nin vec4 fs_UV;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);\n        // out_Col = vec4(diffuseColor.rgb, 0.1f);\n        // vec2(fs_UV);\n        // texture2D(u_Texture, vec2(fs_UV));\n        out_Col = texture(u_Texture, vec2(fs_UV.x, fs_UV.y));\n        // out_Col = texture(u_Texture, vec2(fs_UV));\n        // out_Col = vec4(vec3(fs_UV), 1.f);\n}\n"
-
-/***/ }),
-
-/***/ "./src/shaders/textureShader-vert.glsl":
-/*!*********************************************!*\
-  !*** ./src/shaders/textureShader-vert.glsl ***!
-  \*********************************************/
-/***/ ((module) => {
-
-module.exports = "#version 300 es\n\n//This is a vertex shader. While it is called a \"shader\" due to outdated conventions, this file\n//is used to apply matrix transformations to the arrays of vertex data passed to it.\n//Since this code is run on your GPU, each vertex is transformed simultaneously.\n//If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.\n//This simultaneous transformation allows your program to run much faster, especially when rendering\n//geometry with millions of vertices.\n\nuniform mat4 u_Model;       // The matrix that defines the transformation of the\n                            // object we're rendering. In this assignment,\n                            // this will be the result of traversing your scene graph.\n\nuniform mat4 u_ModelInvTr;  // The inverse transpose of the model matrix.\n                            // This allows us to transform the object's normals properly\n                            // if the object has been non-uniformly scaled.\n\nuniform mat4 u_ViewProj;    // The matrix that defines the camera's transformation.\n                            // We've written a static matrix for you to use for HW2,\n                            // but in HW3 you'll have to generate one yourself\n\nuniform vec4 u_CamPos;\n\nuniform float u_Time;\n\nin vec4 vs_Pos;             // The array of vertex positions passed to the shader\n\nin vec4 vs_Nor;             // The array of vertex normals passed to the shader\n\nin vec4 vs_Col;             // The array of vertex colors passed to the shader.\n\nin vec4 vs_UV; //UV coordinates\n\nout vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.\nout vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Pos;\nout vec4 fs_UV;\n\nconst vec4 lightPos = vec4(5, 5, 5, 1); //The position of our virtual light, which is used to compute the shading of\n                                        //the geometry in the fragment shader.\n\nvoid main()\n{\n    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation\n\n    mat3 invTranspose = mat3(u_ModelInvTr);\n    fs_Nor = normalize(vec4(invTranspose * vec3(vs_Nor), 0));\n\n    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below\n\n    vec3 tempPos = vec3(modelposition);\n\n\n    fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies\n    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is\n                                             // used to render the final positions of the geometry's vertices\n\n    fs_Pos = modelposition;\n    fs_UV = vec4(vs_UV);\n}\n"
-
 /***/ })
 
 /******/ 	});
@@ -11240,24 +11220,24 @@ function main() {
         // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
         new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.FRAGMENT_SHADER, __webpack_require__(/*! ./shaders/fireBallMouth-frag.glsl */ "./src/shaders/fireBallMouth-frag.glsl")),
     ]);
-    const textureTest = new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__["default"]([
-        new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.VERTEX_SHADER, __webpack_require__(/*! ./shaders/textureShader-vert.glsl */ "./src/shaders/textureShader-vert.glsl")),
-        // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
-        new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.FRAGMENT_SHADER, __webpack_require__(/*! ./shaders/textureShader-frag.glsl */ "./src/shaders/textureShader-frag.glsl")),
-    ]);
+    // const textureTest = new ShaderProgram([
+    //   new Shader(gl.VERTEX_SHADER, require('./shaders/textureShader-vert.glsl')),
+    //   // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/textureShader-frag.glsl')),
+    // ]);
     //Initialize Texture
     // ---- load texture
     // const texture1 = new Texture();
-    const textur = loadTexture('./ExampleTexture.jpg');
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textur);
+    // const textur = loadTexture('./ExampleTexture.jpg');
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, textur);
     // const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
     // var texture_1 = new Texture();
     // texture_1.initializeTexture('./bruh.png');
     // texture_1.load();
     // texture_1.bind(0);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    textureTest.setTextureSampler(0);
+    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    // textureTest.setTextureSampler(0);
     // This function will be called every frame
     function tick() {
         time++;
@@ -11286,42 +11266,40 @@ function main() {
         //Add time input into this call!!!
         // gl.disable(gl.DEPTH_TEST);
         //refresh texture:
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, textur);
-        textureTest.setTextureSampler(0);
+        // gl.activeTexture(gl.TEXTURE0);
+        // gl.bindTexture(gl.TEXTURE_2D, textur);
+        // textureTest.setTextureSampler(0);
         let id = gl_matrix__WEBPACK_IMPORTED_MODULE_9__.create();
         gl_matrix__WEBPACK_IMPORTED_MODULE_9__.identity(id);
-        renderer.render(camera, textureTest, [
-            // icosphere,
+        renderer.render(camera, fireBall, [
+            icosphere,
             // leftEye,
-            square,
+            // square,
             // cube,
         ], 
         // vec3.fromValues(controls.R, controls.G, controls.B),
         // camera.position,
         time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]);
-        // renderer.render(camera, fireBallEye, [
-        //   // icosphere,
-        //   leftEye,
-        //   rightEye,
-        //   // square,
-        //   // square,
-        //   // cube,
-        //   ],
-        //   // vec3.fromValues(controls.R, controls.G, controls.B),
-        //   time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
-        // );
-        // renderer.render(camera, fireBallIris, [
-        //   // icosphere,
-        //   leftIris,
-        //   rightIris,
-        //   // square,
-        //   // square,
-        //   // cube,
-        //   ],
-        //   // vec3.fromValues(controls.R, controls.G, controls.B),
-        //   time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
-        // );
+        renderer.render(camera, fireBallEye, [
+            // icosphere,
+            leftEye,
+            rightEye,
+            // square,
+            // square,
+            // cube,
+        ], 
+        // vec3.fromValues(controls.R, controls.G, controls.B),
+        time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]);
+        renderer.render(camera, fireBallIris, [
+            // icosphere,
+            leftIris,
+            rightIris,
+            // square,
+            // square,
+            // cube,
+        ], 
+        // vec3.fromValues(controls.R, controls.G, controls.B),
+        time * controls.Speed, controls.FireRoughness, controls.Happy, [id,]);
         //Transformations for 3D mouth (redacted):
         // let mouthScale: mat4 = mat4.create();
         // mat4.fromScaling(mouthScale, vec3.fromValues(2.0, 0.8, 1.2));
