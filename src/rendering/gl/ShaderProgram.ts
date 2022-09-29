@@ -24,11 +24,13 @@ class ShaderProgram {
   attrPos: number;
   attrNor: number;
   attrCol: number;
+  attrUV: number;
 
   unifModel: WebGLUniformLocation;
   unifModelInvTr: WebGLUniformLocation;
   unifViewProj: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
+  unifSampler2D: WebGLUniformLocation;
   //Custom
   unifCamPos: WebGLUniformLocation;
   unifTime: WebGLUniformLocation;
@@ -50,10 +52,12 @@ class ShaderProgram {
     this.attrPos = gl.getAttribLocation(this.prog, "vs_Pos");
     this.attrNor = gl.getAttribLocation(this.prog, "vs_Nor");
     this.attrCol = gl.getAttribLocation(this.prog, "vs_Col");
+    this.attrUV = gl.getAttribLocation(this.prog, "vs_UV");
     this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
     this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
+    this.unifSampler2D = gl.getUniformLocation(this.prog, "u_Texture");
     this.unifCamPos   = gl.getUniformLocation(this.prog, "u_CamPos");
     this.unifTime = gl.getUniformLocation(this.prog, "u_Time");
     this.unifRoughness = gl.getUniformLocation(this.prog, "u_Rough");
@@ -92,6 +96,13 @@ class ShaderProgram {
     this.use();
     if (this.unifColor !== -1) {
       gl.uniform4fv(this.unifColor, color);
+    }
+  }
+
+  setTextureSampler(texSlot: number) {
+    this.use();
+    if (this.unifSampler2D !== -1) {
+      gl.uniform1i(this.unifSampler2D, texSlot);
     }
   }
 
@@ -135,11 +146,22 @@ class ShaderProgram {
       gl.vertexAttribPointer(this.attrNor, 4, gl.FLOAT, false, 0, 0);
     }
 
+    if (this.attrUV != -1 && d.bindUV()) {
+      gl.enableVertexAttribArray(this.attrUV);
+      gl.vertexAttribPointer(this.attrUV, 4, gl.FLOAT, false, 0, 0);
+    }
+
+    if(this.unifSampler2D != -1)
+    {
+        gl.uniform1i(this.unifSampler2D, 0); // set back to 0
+    }
+
     d.bindIdx();
     gl.drawElements(d.drawMode(), d.elemCount(), gl.UNSIGNED_INT, 0);
 
     if (this.attrPos != -1) gl.disableVertexAttribArray(this.attrPos);
     if (this.attrNor != -1) gl.disableVertexAttribArray(this.attrNor);
+    if (this.attrUV != -1) gl.disableVertexAttribArray(this.attrUV);
   }
 };
 

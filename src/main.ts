@@ -8,6 +8,8 @@ import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import Texture from './Texture'
+import {gl} from './globals';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
@@ -71,7 +73,36 @@ function loadScene() {
 
 //Update the existing GUI in main.ts with:
 //    a parameter to alter the color passed to u_Color in the Lambert shader. 
+function loadTexture(url: string) {
+  console.log('loadtexture called');
+  const texture = gl.createTexture();
+  const image = new Image();
 
+  image.onload = e => {
+      console.log('Image onload called');
+      alert('Onload');
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+                            image.width, image.height,
+                            0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  };
+  image.src = './screenshot.png';
+  return texture;
+}
+// function loadTexture2(image: HTMLImageElement, i: WebGLTexture) {
+//   alert('bruh');
+//   gl.bindTexture(gl.TEXTURE_2D, i);
+      
+//   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+//   gl.generateMipmap(gl.TEXTURE_2D);
+// }
 
 function main() {
   // Initial display for framerate
@@ -147,13 +178,31 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallMouth-frag.glsl')),
   ]);
 
+  // const textureTest = new ShaderProgram([
+  //   new Shader(gl.VERTEX_SHADER, require('./shaders/textureShader-vert.glsl')),
+  //   // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+  //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/textureShader-frag.glsl')),
+  // ]);
+
+  //Initialize Texture
+  // ---- load texture
+  // const texture1 = new Texture();
+  // const textur = loadTexture('./ExampleTexture.jpg');
+  // gl.activeTexture(gl.TEXTURE0);
+  // gl.bindTexture(gl.TEXTURE_2D, textur);
+
+  // const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
+  // var texture_1 = new Texture();
+  // texture_1.initializeTexture('./bruh.png');
+  // texture_1.load();
+  // texture_1.bind(0);
+  // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  // textureTest.setTextureSampler(0);
+
   // This function will be called every frame
   function tick() {
-    gl.disable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
     time++;
     camera.update();
-    console.log("bruh");
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
@@ -181,6 +230,11 @@ function main() {
     //Add time input into this call!!!
     // gl.disable(gl.DEPTH_TEST);
 
+    //refresh texture:
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, textur);
+    // textureTest.setTextureSampler(0);
+  
     let id: mat4 = mat4.create();
     mat4.identity(id);
     renderer.render(camera, fireBall, [
@@ -215,17 +269,16 @@ function main() {
       // vec3.fromValues(controls.R, controls.G, controls.B),
       time * controls.Speed, controls.FireRoughness, controls.Happy, [id, ]
     );
-    let mouthScale: mat4 = mat4.create();
-    mat4.fromScaling(mouthScale, vec3.fromValues(2.0, 0.8, 1.2));
-    let mouthTrans: mat4 = mat4.create();
-    mat4.fromTranslation(mouthTrans, mouthPos);
-    mat4.invert(mouthTrans, mouthTrans);
-    // mat4.identity(mouthTrans);
-    let mouthModel: mat4 = mat4.create();
-    // mat4.identity(mouthModel);
-    mat4.multiply(mouthModel, mouthScale, mouthTrans);
-    mat4.invert(mouthTrans, mouthTrans);
-    mat4.multiply(mouthModel, mouthTrans, mouthModel);
+    //Transformations for 3D mouth (redacted):
+      // let mouthScale: mat4 = mat4.create();
+      // mat4.fromScaling(mouthScale, vec3.fromValues(2.0, 0.8, 1.2));
+      // let mouthTrans: mat4 = mat4.create();
+      // mat4.fromTranslation(mouthTrans, mouthPos);
+      // mat4.invert(mouthTrans, mouthTrans);
+      // let mouthModel: mat4 = mat4.create();
+      // mat4.multiply(mouthModel, mouthScale, mouthTrans);
+      // mat4.invert(mouthTrans, mouthTrans);
+      // mat4.multiply(mouthModel, mouthTrans, mouthModel);
     // renderer.render(camera, fireBallMouth, [
     //   // icosphere,
     //   mouth,

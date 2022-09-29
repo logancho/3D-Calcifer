@@ -15,6 +15,7 @@ uniform vec4 u_Color; // The color with which to render this instance of geometr
 uniform float u_Time;
 uniform vec4 u_CamPos;
 uniform float u_Happy;
+uniform sampler2D u_Texture;
 
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
@@ -106,46 +107,27 @@ void main()
         float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
                                                             //to simulate ambient lighting. This ensures that faces that are not
                                                             //lit by our point light are not completely black.
-        // vec3 i = 0.001f * vec3(fs_Pos) + 0.000001f * vec3(u_Time);
-        // float fbm_2 = bias(fbm_test(i.x, i.y, i.z), 0.45f);
-        // vec3 i = 0.000006f * vec3(fs_Pos) + 0.00000009f * vec3(u_Time);
-        // float fbm_2 = bias(fbm_test(i.x, i.y, i.z), 0.45f);
-
-
 
         // Compute final shaded color
-        // out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
-        // out_Col = vec4(vec3(diffuseColor), 1.0f);
-        // out_Col = vec4(lightIntensity * vec3(mix(vec4(diffuseColor), vec4(vec3(1.f) - vec3(diffuseColor), 1.f), fbm_2)), 1.f);
 
-        // if (abs(dot(vec3(fs_Nor), vec3(0, 1, 0))) > 0.5f) {
-        // out_Col = vec4(247.f / 255.f, 191.f / 255.f, 65.f / 255.f, 1.f);
-        // out_Col = vec4( mix(vec3(247.f / 255.f, 191.f / 255.f, 65.f / 255.f), vec3(189.f / 255.f, 76.f / 255.f, 46.f / 255.f), length(vec3(fs_Pos))));
         vec3 yellow = vec3(250.f / 255.f, 188.f / 255.f, 70.f / 255.f);
         vec3 red = vec3(200.f / 255.f, 74.f / 255.f, 50.f / 255.f);
 
         float dist = length(fs_Pos);
         dist = 1.f;
-        // vec3 comparison = normalize(vec3(0) - vec3(0, 0, 1));
-        // dist = acos(dot(normalize(vec3(fs_Nor)), vec3(0, 0, 1))))));
+
         dist = acos(dot(normalize(vec3(fs_Nor)), normalize(vec3(u_CamPos))));
         dist /= (2.0*PI);
         dist = fade(dist);
         dist = easeInOutCubic(dist + 0.09f * sin(0.12f * u_Time) + 0.2f);
         vec3 ipol = mix(yellow, red, dist);
 
-        // if (dist < 0.6f) {
-        //     ipol = yellow;
-        // }
-
-
         vec3 mouthPoint = vec3(fs_Pos);
         float mouthAngle = acos(dot(normalize(vec3(fs_Pos) - vec3(mouthCenter)), normalize(vec3(0, 1, 0))));
         
         vec3 dir = normalize(mouthPoint - mouthCenter);
-        // mouthPoint += 0.55f * length(mouthPoint - mouthCenter) * sin(mouthAngle * 2.4f + 1.2f) * dir;
+
         mouthPoint += 0.15f * sin(u_Happy * -mouthAngle * 2.2f + 1.2f) * dir;
-        // mouthPoint += 0.02f * cos(mouthAngle * 2.6f + 0.1f * u_Time) * dir;
 
         float mouthDist = length(vec3(mouthPoint) - vec3(mouthCenter));
         float mouthDistY = abs(mouthPoint.y - mouthCenter.y);
@@ -154,12 +136,11 @@ void main()
             vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);
             ipol = mouth;
         }
-        // if (mouthDist <= 0.3f && mouthDistY <= 0.10f) {
-        //     // float mouthAngle = acos(dot(normalize(vec3(fs_Pos)), vec3(mouthCenter)));
-        // }
+        if (mouthDist >= 0.17f && mouthDist <= 0.192f) {
+            float t = (mouthDist - 0.17f) / 0.022f;
+            vec3 mouth = vec3(161.f / 255.f, 61.f / 255.f, 34.f / 255.f);
+            ipol = mix(mouth, ipol, t);
+        }
+
         out_Col = vec4(ipol, 1.0f);
-        // out
-        // out_Col = vec4(vec3(normalize(red)), 1.f);
-        // out_Col = vec4(vec3(u_Color), 1.f);
-        // out_Col = vec4(vec3(normalize(u_CamPos)), 1.f);
 }

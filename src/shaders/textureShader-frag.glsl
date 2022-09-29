@@ -19,6 +19,7 @@ uniform sampler2D u_Texture;
 in vec4 fs_Nor;
 in vec4 fs_LightVec;
 in vec4 fs_Col;
+in vec4 fs_UV;
 
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
@@ -41,5 +42,10 @@ void main()
 
         // Compute final shaded color
         // out_Col = vec4(diffuseColor.rgb * lightIntensity, 0.8f);
-        out_Col = vec4(diffuseColor.rgb, 0.1f);
+        // out_Col = vec4(diffuseColor.rgb, 0.1f);
+        // vec2(fs_UV);
+        // texture2D(u_Texture, vec2(fs_UV));
+        out_Col = texture(u_Texture, vec2(fs_UV.x, fs_UV.y));
+        // out_Col = texture(u_Texture, vec2(fs_UV));
+        // out_Col = vec4(vec3(fs_UV), 1.f);
 }

@@ -57,5 +57,5 @@ void main()
                                              // used to render the final positions of the geometry's vertices
 
     fs_Pos = modelposition;
-    // fs_UV = vec4(vs_UV);
+    fs_UV = vec4(vs_UV);
 }
