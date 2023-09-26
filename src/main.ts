@@ -80,7 +80,7 @@ function loadTexture(url: string) {
 
   image.onload = e => {
       console.log('Image onload called');
-      alert('Onload');
+      // alert('Onload');
       gl.bindTexture(gl.TEXTURE_2D, texture);
 
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -98,7 +98,7 @@ function loadTexture(url: string) {
 }
 
 function loadTexture2(image: HTMLImageElement, i: WebGLTexture) {
-  alert('bruh');
+  // alert('bruh');
   gl.bindTexture(gl.TEXTURE_2D, i);
       
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
