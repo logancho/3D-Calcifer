@@ -93,7 +93,7 @@ function loadTexture(url: string) {
                             0, gl.RGBA, gl.UNSIGNED_BYTE, image);
       // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
   };
-  image.src = 'src/ExampleTexture.jpg';
+  image.src = 'Texture.jpg';
   return texture;
 }
 
@@ -240,10 +240,10 @@ function main() {
   
     let id: mat4 = mat4.create();
     mat4.identity(id);
-    renderer.render(camera, textureTest, [
-      // icosphere,
+    renderer.render(camera, fireBall, [
+      icosphere,
       // leftEye,
-      square,
+      // square,
       // cube,
       ],
       // vec3.fromValues(controls.R, controls.G, controls.B),
