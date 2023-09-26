@@ -93,16 +93,17 @@ function loadTexture(url: string) {
                             0, gl.RGBA, gl.UNSIGNED_BYTE, image);
       // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
   };
-  image.src = './screenshot.png';
+  image.src = 'src/ExampleTexture.jpg';
   return texture;
 }
-// function loadTexture2(image: HTMLImageElement, i: WebGLTexture) {
-//   alert('bruh');
-//   gl.bindTexture(gl.TEXTURE_2D, i);
+
+function loadTexture2(image: HTMLImageElement, i: WebGLTexture) {
+  alert('bruh');
+  gl.bindTexture(gl.TEXTURE_2D, i);
       
-//   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-//   gl.generateMipmap(gl.TEXTURE_2D);
-// }
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.generateMipmap(gl.TEXTURE_2D);
+}
 
 function main() {
   // Initial display for framerate
@@ -137,7 +138,7 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
+  // const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.0, 0.0, 0.0, 1);
@@ -178,26 +179,28 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/fireBallMouth-frag.glsl')),
   ]);
 
-  // const textureTest = new ShaderProgram([
-  //   new Shader(gl.VERTEX_SHADER, require('./shaders/textureShader-vert.glsl')),
-  //   // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
-  //   new Shader(gl.FRAGMENT_SHADER, require('./shaders/textureShader-frag.glsl')),
-  // ]);
+  const textureTest = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/textureShader-vert.glsl')),
+    // new Shader(gl.VERTEX_SHADER, require('./shaders/trig-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/textureShader-frag.glsl')),
+  ]);
 
   //Initialize Texture
   // ---- load texture
   // const texture1 = new Texture();
-  // const textur = loadTexture('./ExampleTexture.jpg');
-  // gl.activeTexture(gl.TEXTURE0);
-  // gl.bindTexture(gl.TEXTURE_2D, textur);
+  const textur = loadTexture('src\ExampleTexture.jpg');
 
-  // const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
-  // var texture_1 = new Texture();
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, textur);
+
+ const camera = new Camera(vec3.fromValues(0.0, 0.0, -15.0), vec3.fromValues(0.0, 0.0, 0.0));
+  // var texture_1 = loadTexture('src\ExampleTexture.jpg');
   // texture_1.initializeTexture('./bruh.png');
   // texture_1.load();
   // texture_1.bind(0);
-  // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  // textureTest.setTextureSampler(0);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  textureTest.setTextureSampler(0);
 
   // This function will be called every frame
   function tick() {
@@ -231,16 +234,16 @@ function main() {
     // gl.disable(gl.DEPTH_TEST);
 
     //refresh texture:
-    // gl.activeTexture(gl.TEXTURE0);
-    // gl.bindTexture(gl.TEXTURE_2D, textur);
-    // textureTest.setTextureSampler(0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, textur);
+    textureTest.setTextureSampler(0);
   
     let id: mat4 = mat4.create();
     mat4.identity(id);
-    renderer.render(camera, fireBall, [
-      icosphere,
+    renderer.render(camera, textureTest, [
+      // icosphere,
       // leftEye,
-      // square,
+      square,
       // cube,
       ],
       // vec3.fromValues(controls.R, controls.G, controls.B),
